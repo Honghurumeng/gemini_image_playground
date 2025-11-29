@@ -1,0 +1,62 @@
+export interface AppSettings {
+  resolution: '1K' | '2K' | '4K';
+  aspectRatio: 'Auto' | '1:1' | '3:4' | '4:3' | '9:16' | '16:9';
+  useGrounding: boolean;
+  enableThinking: boolean;
+  streamResponse: boolean;
+  customEndpoint?: string;
+  modelName?: string;
+  theme: 'light' | 'dark' | 'system';
+  isPro: boolean;
+}
+
+export interface Part {
+  text?: string;
+  inlineData?: {
+    mimeType: string;
+    data: string;
+  };
+  thought?: boolean;
+  thoughtSignature?: string;
+}
+
+export interface Content {
+  role: 'user' | 'model';
+  parts: Part[];
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  parts: Part[];
+  timestamp: number;
+  isError?: boolean;
+  thinkingDuration?: number;
+}
+
+export interface Attachment {
+  file: File;
+  preview: string; // Base64 for UI preview
+  base64Data: string; // Raw base64 for API
+  mimeType: string;
+}
+
+export interface ImageHistoryItem {
+  id: string;
+  mimeType: string;
+  base64Data?: string; // Raw base64 for API (Optional if stored separately)
+  thumbnailData?: string; // Base64 thumbnail
+  prompt: string; // 生成图片的提示词
+  timestamp: number;
+  modelName?: string;
+}
+
+export interface PromptItem {
+  title: string;
+  preview: string;
+  prompt: string;
+  author: string;
+  link: string;
+  mode: 'edit' | 'generate';
+  category: string;
+}
