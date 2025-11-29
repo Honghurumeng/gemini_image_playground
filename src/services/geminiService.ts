@@ -236,9 +236,13 @@ export const generateContent = async (
   settings: AppSettings,
   signal?: AbortSignal
 ) => {
+  const baseUrl = settings.customEndpoint || 'https://undyapi.com';
+  console.log('初始化 GoogleGenAI，baseUrl:', baseUrl);
+
   const { GoogleGenAI } = await import("@google/genai");
+
   const ai = new GoogleGenAI(
-    { apiKey, httpOptions: { baseUrl: settings.customEndpoint || 'https://undyapi.com' } }
+    { apiKey, httpOptions: { baseUrl } }
   );
 
   // Filter out thought parts from history
@@ -255,11 +259,22 @@ export const generateContent = async (
   const currentUserContent = constructUserContent(prompt, images);
   const contentsPayload = [...cleanHistory, currentUserContent];
 
+  console.log('请求参数:', {
+    apiKey: apiKey.substring(0, 10) + '...',
+    model: settings.modelName || "gemini-3-pro-image-preview",
+    contentsLength: contentsPayload.length,
+    hasImages: images.length > 0
+  });
+
   try {
     // If signal is aborted before we start, throw immediately
     if (signal?.aborted) {
         throw new DOMException('Aborted', 'AbortError');
     }
+
+    console.log('发送请求到 Gemini API...');
+    console.log('Base URL:', settings.customEndpoint || 'https://undyapi.com');
+    console.log('Model:', settings.modelName || "gemini-3-pro-image-preview");
 
     const response = await ai.models.generateContent({
       model: settings.modelName || "gemini-3-pro-image-preview",
@@ -281,15 +296,19 @@ export const generateContent = async (
       },
     });
 
+    console.log('Gemini API 响应:', response);
+
     if (signal?.aborted) {
         throw new DOMException('Aborted', 'AbortError');
     }
 
     const candidate = response.candidates?.[0];
     if (!candidate || !candidate.content || !candidate.content.parts) {
+      console.error('无效的候选响应:', response);
       throw new Error("No content generated.");
     }
 
+    console.log('Candidate parts:', candidate.content.parts);
     const modelParts = processSdkParts(candidate.content.parts);
 
     return {
@@ -299,6 +318,13 @@ export const generateContent = async (
 
   } catch (error) {
     console.error("Gemini API Error:", error);
+    console.error("Error details:", {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+      status: error?.status,
+      statusText: error?.statusText
+    });
     throw formatGeminiError(error);
   }
 };

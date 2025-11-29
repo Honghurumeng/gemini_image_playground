@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { useUiStore } from '../store/useUiStore';
-import { X, LogOut, Trash2, Share2, Bookmark, DollarSign, RefreshCw, Download, Zap } from 'lucide-react';
-import { formatBalance } from '../services/balanceService';
+import { X, LogOut, Trash2, Share2, Bookmark, Download, Zap } from 'lucide-react';
 
 export const SettingsPanel: React.FC = () => {
-  const { apiKey, settings, updateSettings, toggleSettings, removeApiKey, clearHistory, isSettingsOpen, fetchBalance, balance, installPrompt, setInstallPrompt } = useAppStore();
+  const { apiKey, settings, updateSettings, toggleSettings, removeApiKey, clearHistory, isSettingsOpen, installPrompt, setInstallPrompt } = useAppStore();
   const { addToast, showDialog } = useUiStore();
-  const [loadingBalance, setLoadingBalance] = useState(false);
   
   const handleInstallClick = async () => {
     if (!installPrompt) return;
@@ -28,31 +26,7 @@ export const SettingsPanel: React.FC = () => {
     setInstallPrompt(null);
   };
   
-  // 首次加载或打开面板时如果没有余额数据，尝试获取
-  useEffect(() => {
-    if (apiKey && isSettingsOpen && !balance && !loadingBalance) {
-        setLoadingBalance(true);
-        fetchBalance().finally(() => setLoadingBalance(false));
-    }
-  }, [apiKey, isSettingsOpen, balance, fetchBalance]);
-
-  const handleFetchBalance = async () => {
-    if (!apiKey) {
-      addToast("请先输入 API Key", 'error');
-      return;
-    }
-
-    setLoadingBalance(true);
-    try {
-      await fetchBalance();
-      addToast("余额查询成功", 'success');
-    } catch (error: any) {
-      addToast(`余额查询失败: ${error.message}`, 'error');
-    } finally {
-      setLoadingBalance(false);
-    }
-  };
-
+  
   const getBookmarkUrl = () => {
     if (!apiKey) return window.location.href;
     const params = new URLSearchParams();
@@ -93,56 +67,6 @@ export const SettingsPanel: React.FC = () => {
       </div>
 
       <div className="space-y-8 flex-1">
-        {/* Balance Section */}
-        {apiKey && (
-          <section className="p-4 rounded-xl bg-linear-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">API 余额</h3>
-              </div>
-              <button
-                onClick={handleFetchBalance}
-                disabled={loadingBalance}
-                className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800/30 text-blue-600 dark:text-blue-400 disabled:opacity-50 transition"
-                title="刷新余额"
-              >
-                <RefreshCw className={`h-4 w-4 ${loadingBalance ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-
-            {loadingBalance && !balance ? (
-              <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-3">
-                查询中...
-              </div>
-            ) : balance ? (
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white/50 dark:bg-gray-900/30 rounded-lg p-2.5 text-center">
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">总额度</div>
-                  <div className="text-sm font-bold text-gray-900 dark:text-white">
-                    {formatBalance(balance.hardLimitUsd, balance.isUnlimited)}
-                  </div>
-                </div>
-                <div className="bg-white/50 dark:bg-gray-900/30 rounded-lg p-2.5 text-center">
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">已使用</div>
-                  <div className="text-sm font-bold text-orange-600 dark:text-orange-400">
-                    {formatBalance(balance.usage, balance.isUnlimited)}
-                  </div>
-                </div>
-                <div className="bg-white/50 dark:bg-gray-900/30 rounded-lg p-2.5 text-center">
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">剩余</div>
-                  <div className="text-sm font-bold text-green-600 dark:text-green-400">
-                    {formatBalance(balance.remaining, balance.isUnlimited)}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
-                点击刷新按钮查询余额
-              </div>
-            )}
-          </section>
-        )}
 
         {/* Pro Mode Toggle */}
         <section>

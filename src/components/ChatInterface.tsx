@@ -23,8 +23,7 @@ export const ChatInterface: React.FC = () => {
     isLoading,
     setLoading,
     deleteMessage,
-    sliceMessages,
-    fetchBalance
+    sliceMessages
   } = useAppStore();
   
   const [showArcade, setShowArcade] = useState(false);
@@ -208,8 +207,8 @@ export const ChatInterface: React.FC = () => {
     } finally {
       setLoading(false);
       abortControllerRef.current = null;
-      // 每次生成结束后静默刷新余额
-      fetchBalance();
+      // TODO: 余额查询功能暂时禁用，等待重新实现
+      // fetchBalance();
     }
   };
 

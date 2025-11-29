@@ -37,7 +37,20 @@ export async function fetchPrompts(): Promise<PromptItem[]> {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    // 先获取响应文本内容进行检查
+    const responseText = await response.text();
+    console.log('API 原始返回内容:', responseText);
+    console.log('响应 Content-Type:', response.headers.get('content-type'));
+
+    // 尝试解析为 JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('JSON 解析失败:', parseError);
+      console.error('返回内容前100字符:', responseText.substring(0, 100));
+      throw new Error(`Invalid JSON response: ${parseError.message}`);
+    }
 
     // 验证数据格式
     if (!Array.isArray(data)) {

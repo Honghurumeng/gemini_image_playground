@@ -4,8 +4,7 @@ import { useUiStore } from './store/useUiStore';
 import { ChatInterface } from './components/ChatInterface';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { GlobalDialog } from './components/ui/GlobalDialog';
-import { formatBalance } from './services/balanceService';
-import { Settings, Sun, Moon, Github, ImageIcon, DollarSign, Download, Sparkles } from 'lucide-react';
+import { Settings, Sun, Moon, Github, ImageIcon, Download, Sparkles } from 'lucide-react';
 import { lazyWithRetry, preloadComponents } from './utils/lazyLoadUtils';
 
 // Lazy load components
@@ -15,7 +14,7 @@ const ImageHistoryPanel = lazyWithRetry(() => import('./components/ImageHistoryP
 const PromptLibraryPanel = lazyWithRetry(() => import('./components/PromptLibraryPanel').then(module => ({ default: module.PromptLibraryPanel })));
 
 const App: React.FC = () => {
-  const { apiKey, setApiKey, settings, updateSettings, isSettingsOpen, toggleSettings, imageHistory, balance, fetchBalance, installPrompt, setInstallPrompt } = useAppStore();
+  const { apiKey, setApiKey, settings, updateSettings, isSettingsOpen, toggleSettings, imageHistory, installPrompt, setInstallPrompt } = useAppStore();
   const { togglePromptLibrary, isPromptLibraryOpen, showDialog, addToast } = useUiStore();
 
   useEffect(() => {
@@ -175,20 +174,6 @@ const App: React.FC = () => {
         
         {apiKey && (
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* Balance Display - Desktop only */}
-            {balance && (
-                <div 
-                    onClick={() => fetchBalance()}
-                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition mr-2"
-                    title="点击刷新余额"
-                >
-                    <DollarSign className="h-4 w-4 text-green-600 dark:text-green-500" />
-                    <span className={balance.remaining < 1 ? "text-red-500" : ""}>
-                        {formatBalance(balance.remaining, balance.isUnlimited)}
-                    </span>
-                </div>
-            )}
-
             {installPrompt && (
               <button
                 onClick={handleInstallClick}

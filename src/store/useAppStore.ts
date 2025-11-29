@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import { get as getVal, set as setVal, del as delVal } from 'idb-keyval';
-import { fetchBalance, BalanceInfo } from '../services/balanceService';
 import { AppSettings, ChatMessage, Part, ImageHistoryItem } from '../types';
 import { createThumbnail } from '../utils/imageUtils';
 
@@ -26,12 +25,10 @@ interface AppState {
   isLoading: boolean;
   isSettingsOpen: boolean;
   inputText: string; // Global input text state
-  balance: BalanceInfo | null;
   installPrompt: any | null; // PWA Install Prompt Event
 
   setInstallPrompt: (prompt: any) => void;
   setApiKey: (key: string) => void;
-  fetchBalance: () => Promise<void>;
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   addMessage: (message: ChatMessage) => void;
   updateLastMessage: (parts: Part[], isError?: boolean, thinkingDuration?: number) => void;
@@ -68,22 +65,10 @@ export const useAppStore = create<AppState>()(
       isLoading: false,
       isSettingsOpen: window.innerWidth > 640, // Open by default only on desktop (sm breakpoint)
       inputText: '',
-      balance: null,
       installPrompt: null,
 
       setInstallPrompt: (prompt) => set({ installPrompt: prompt }),
       setApiKey: (key) => set({ apiKey: key }),
-
-      fetchBalance: async () => {
-        const { apiKey, settings } = get();
-        if (!apiKey) return;
-        try {
-          const balance = await fetchBalance(apiKey, settings);
-          set({ balance });
-        } catch (error) {
-          console.error('Failed to update balance:', error);
-        }
-      },
       
       updateSettings: (newSettings) => 
         set((state) => ({ settings: { ...state.settings, ...newSettings } })),

@@ -3,7 +3,7 @@ import { useAppStore } from '../store/useAppStore';
 import { Key, ExternalLink, ChevronDown, ChevronRight, Settings2 } from 'lucide-react';
 
 export const ApiKeyModal: React.FC = () => {
-  const { setApiKey, updateSettings, settings, fetchBalance } = useAppStore();
+  const { setApiKey, updateSettings, settings } = useAppStore();
   const [inputKey, setInputKey] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [endpoint, setEndpoint] = useState(settings.customEndpoint || '');
@@ -24,8 +24,8 @@ export const ApiKeyModal: React.FC = () => {
       modelName: model
     });
     setApiKey(inputKey);
-    // 立即尝试刷新余额
-    setTimeout(() => fetchBalance(), 0);
+    // TODO: 余额查询功能暂时禁用，等待重新实现
+    // setTimeout(() => fetchBalance(), 0);
   };
 
   return (

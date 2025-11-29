@@ -1,4 +1,4 @@
-# Gemini 3 Pro Client (Frontend Only)
+# UndyDraw - Gemini 3 Pro 客户端
 
 这是一个基于 React 的现代化纯前端应用，专为与 Google 的 **Gemini 3 Pro** 模型交互而设计。它提供了一个流畅的聊天界面，支持多模态输入，并在等待 AI 思考时提供趣味性的互动体验。
 
@@ -33,14 +33,6 @@
   - 支持单张下载或批量管理
   - 数据持久化保存到浏览器本地
 
-### 💰 余额管理 (新增)
-
-- **API 余额查询**：
-  - 实时显示 API Key 余额信息
-  - 三栏显示：总额度 / 已使用 / 剩余
-  - 支持手动刷新余额
-  - 自动查询（首次打开设置面板时）
-  - 支持自定义 API Endpoint
 
 ### 🎮 等待街机模式
 
@@ -168,18 +160,7 @@ http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
 - **下载图片**：悬停显示下载按钮，或在预览模式下一键下载
 - **清空历史**：点击顶部垃圾桶图标清空所有记录
 
-### 5. 查看 API 余额 ✨ (新增)
-
-打开设置面板（右上角 ⚙️ 图标），顶部显示余额卡片：
-
-- **总额度**：你的 API Key 总额度
-- **已使用**：近 100 天的消费金额
-- **剩余**：剩余可用额度
-- **刷新**：点击右上角刷新按钮更新数据
-
-> 注意：余额查询功能仅支持 OpenAI 兼容的 API Endpoint（如 `undyapi.com`）
-
-### 6. 高级设置
+### 5. 高级设置
 
 点击右上角的设置图标（⚙️）打开设置面板，可以调整：
 
@@ -200,12 +181,11 @@ http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
 │   ├── ChatInterface.tsx        # 主聊天区域
 │   ├── InputArea.tsx            # 输入框与文件上传 (支持拖拽)
 │   ├── MessageBubble.tsx        # 消息气泡与 Markdown 渲染 (支持下载)
-│   ├── SettingsPanel.tsx        # 设置面板 (含余额显示)
+│   ├── SettingsPanel.tsx        # 设置面板
 │   ├── ImageHistoryPanel.tsx    # 图片历史记录面板 ✨
 │   └── ThinkingIndicator.tsx    # 思维链指示器与游戏入口
 ├── services/                 # 服务层
-│   ├── geminiService.ts         # Google GenAI SDK 集成
-│   └── balanceService.ts        # API 余额查询服务 ✨
+│   └── geminiService.ts         # Google GenAI SDK 集成
 ├── store/                    # 状态管理
 │   ├── useAppStore.ts           # 应用核心状态 (含图片历史)
 │   └── useUiStore.ts            # UI 交互状态
@@ -225,7 +205,6 @@ http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
 | 图片上传 | ✅ 点击上传 | ✅ 点击 + 拖拽上传 |
 | 图片下载 | ❌ 需右键另存为 | ✅ 悬停一键下载 |
 | 图片历史 | ❌ 无 | ✅ 自动收集 + 预览 |
-| API 余额 | ❌ 无 | ✅ 实时查询显示 |
 | 项目文档 | ⚠️ 基础 README | ✅ README + CLAUDE.md |
 
 ## 📝 开发文档

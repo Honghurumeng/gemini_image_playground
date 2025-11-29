@@ -20,10 +20,14 @@ export default defineConfig(({ mode }) => {
           devOptions: {
             enabled: true
           },
+          // 禁用 Google Analytics
+          workbox: {
+            offlineGoogleAnalytics: false
+          },
           manifest: {
             name: 'UndyDraw',
             short_name: 'UndyDraw',
-            description: 'Nano Banana Pro在线客户端',
+            description: 'Gemini 3 Pro 客户端',
             theme_color: '#ffffff',
             background_color: '#ffffff',
             display: 'standalone',
