@@ -1,11 +1,26 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { useUiStore } from '../store/useUiStore';
-import { X, LogOut, Zap } from 'lucide-react';
+import { X, Settings, Zap } from 'lucide-react';
 
 export const SettingsPanel: React.FC = () => {
-  const { apiKey, settings, updateSettings, toggleSettings, removeApiKey, isSettingsOpen } = useAppStore();
+  const { apiKey, settings, updateSettings, toggleSettings, removeApiKey, isSettingsOpen, openApiConfigDialog } = useAppStore();
   const { addToast, showDialog } = useUiStore();
+
+  const handleProModeToggle = (isChecked: boolean) => {
+    const newModel = isChecked ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image-preview';
+    updateSettings({
+      isPro: isChecked,
+      modelName: newModel,
+      resolution: isChecked ? '2K' : '1K'
+    });
+    addToast(
+      isChecked
+        ? `已切换到 Pro 模式，使用模型：${newModel}`
+        : `已切换到标准模式，使用模型：${newModel}`,
+      'success'
+    );
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -29,7 +44,7 @@ export const SettingsPanel: React.FC = () => {
               <input
                 type="checkbox"
                 checked={settings.isPro}
-                onChange={(e) => updateSettings({ isPro: (e.target as HTMLInputElement).checked })}
+                onChange={(e) => handleProModeToggle((e.target as HTMLInputElement).checked)}
                 className="sr-only peer"
               />
               <div className="h-6 w-11 rounded-full bg-gray-200 dark:bg-gray-800 peer-focus:ring-2 peer-focus:ring-blue-500/50 peer-checked:bg-blue-600 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></div>
@@ -139,9 +154,6 @@ export const SettingsPanel: React.FC = () => {
                   <div className="h-6 w-11 rounded-full bg-gray-200 dark:bg-gray-800 peer-focus:ring-2 peer-focus:ring-blue-500/50 peer-checked:bg-blue-600 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></div>
                 </div>
               </label>
-              <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
-                 显示模型的内部思考过程。对于不支持思考的模型（例如 gemini-2.5-flash-image / Nano Banana），请禁用此选项。
-              </p>
             </section>
           </div>
         )}
@@ -184,27 +196,17 @@ export const SettingsPanel: React.FC = () => {
 
             <button
                 onClick={() => {
-                    showDialog({
-                        type: 'confirm',
-                        title: '移除 API Key',
-                        message: "您确定要移除您的 API Key 吗？您的聊天记录将被保留。",
-                        confirmLabel: "移除",
-                        onConfirm: () => {
-                            removeApiKey();
-                            addToast("API Key 已移除", 'info');
-                        }
-                    });
+                    openApiConfigDialog();
                 }}
                 className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 p-3 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
             >
-                <LogOut className="h-4 w-4" />
-                <span>清除 API Key</span>
+                <Settings className="h-4 w-4" />
+                <span>编辑 API 配置</span>
             </button>
         </section>
 
         {/* Info */}
         <div className="mt-1 pb-4 text-center text-[10px] text-gray-400 dark:text-gray-600 space-y-1">
-           <p>模型: {settings.modelName || 'gemini-3-pro-image-preview'}</p>
            <p className="truncate px-4">接口地址: {settings.customEndpoint || 'https://undyapi.com'}</p>
         </div>
       </div>

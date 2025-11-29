@@ -32,7 +32,7 @@ export const StylePanel: React.FC = () => {
   const handleApply = () => {
     const enabledCharacters = styleSettings.characters
       .filter(char => char.enabled)
-      .map(char => `${char.name}: ${char.description}`);
+      .map(char => char.description ? `${char.name}: ${char.description}` : char.name);
 
     let prompt = '';
 
@@ -78,11 +78,6 @@ export const StylePanel: React.FC = () => {
       return;
     }
 
-    if (!newCharacterDescription.trim()) {
-      addToast('请输入角色描述', 'error');
-      return;
-    }
-
     addCharacter({
       name: newCharacterName.trim(),
       description: newCharacterDescription.trim()
@@ -103,8 +98,8 @@ export const StylePanel: React.FC = () => {
   };
 
   const handleSaveCharacterEdit = () => {
-    if (!editCharacterName.trim() || !editCharacterDescription.trim()) {
-      addToast('角色名称和描述不能为空', 'error');
+    if (!editCharacterName.trim()) {
+      addToast('角色名称不能为空', 'error');
       return;
     }
 
@@ -185,19 +180,19 @@ export const StylePanel: React.FC = () => {
                 画风
               </label>
               <div className="relative">
-                <input
-                  type="text"
+                <textarea
                   value={styleSettings.artStyle}
                   onChange={(e) => updateStyleSettings({ artStyle: e.target.value })}
                   placeholder="请输入画风，如：写实风格、动漫风格、水彩风格等"
+                  rows={4}
                   className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg
-                           bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
-                           focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
+                           focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                 />
                 {styleSettings.artStyle && (
                   <button
                     onClick={() => updateStyleSettings({ artStyle: '' })}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1
+                    className="absolute right-2 top-2 p-1
                              text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300
                              transition-colors"
                     title="清空"
@@ -349,7 +344,7 @@ export const StylePanel: React.FC = () => {
                   placeholder="描述你想要的画面内容、场景、元素等..."
                   rows={4}
                   className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg
-                           bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
+                           bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
                            focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                 />
                 {styleSettings.contentDescription && (

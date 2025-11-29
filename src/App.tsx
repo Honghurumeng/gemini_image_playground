@@ -13,6 +13,7 @@ const SettingsPanel = lazyWithRetry(() => import('./components/SettingsPanel').t
 const ImageHistoryPanel = lazyWithRetry(() => import('./components/ImageHistoryPanel').then(module => ({ default: module.ImageHistoryPanel })));
 const PromptLibraryPanel = lazyWithRetry(() => import('./components/PromptLibraryPanel').then(module => ({ default: module.PromptLibraryPanel })));
 const StylePanel = lazyWithRetry(() => import('./components/StylePanel').then(module => ({ default: module.StylePanel })));
+const ApiConfigDialog = lazyWithRetry(() => import('./components/ApiConfigDialog').then(module => ({ default: module.ApiConfigDialog })));
 
 const App: React.FC = () => {
   const { apiKey, setApiKey, settings, updateSettings, isSettingsOpen, toggleSettings, imageHistory, clearHistory } = useAppStore();
@@ -30,6 +31,7 @@ const App: React.FC = () => {
       () => import('./components/SettingsPanel'),
       () => import('./components/ImageHistoryPanel'),
       () => import('./components/PromptLibraryPanel'),
+      () => import('./components/ApiConfigDialog'),
       // Also preload components used in ChatInterface
       () => import('./components/ThinkingIndicator'),
       () => import('./components/MessageBubble'),
@@ -262,6 +264,7 @@ const App: React.FC = () => {
         )}
         <PromptLibraryPanel />
         <StylePanel />
+        <ApiConfigDialog />
       </Suspense>
       <ToastContainer />
       <GlobalDialog />

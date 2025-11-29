@@ -17,6 +17,13 @@ const storage: StateStorage = {
   },
 };
 
+interface ApiConfig {
+  id: string;
+  name: string;
+  apiKey: string;
+  endpoint: string;
+}
+
 interface AppState {
   apiKey: string | null;
   settings: AppSettings;
@@ -26,6 +33,8 @@ interface AppState {
   isSettingsOpen: boolean;
   inputText: string; // Global input text state
   installPrompt: any | null; // PWA Install Prompt Event
+  apiConfigs: ApiConfig[]; // API配置列表
+  isApiConfigDialogOpen: boolean; // API配置对话框状态
 
   setInstallPrompt: (prompt: any) => void;
   setApiKey: (key: string) => void;
@@ -43,6 +52,13 @@ interface AppState {
   removeApiKey: () => void;
   deleteMessage: (id: string) => void;
   sliceMessages: (index: number) => void;
+  // API配置相关方法
+  openApiConfigDialog: () => void;
+  closeApiConfigDialog: () => void;
+  saveApiConfig: (config: Omit<ApiConfig, 'id'>) => void;
+  applyApiConfig: (configId: string) => void;
+  deleteApiConfig: (configId: string) => void;
+  updateApiConfig: (configId: string, config: Omit<ApiConfig, 'id'>) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -66,6 +82,8 @@ export const useAppStore = create<AppState>()(
       isSettingsOpen: window.innerWidth > 640, // Open by default only on desktop (sm breakpoint)
       inputText: '',
       installPrompt: null,
+      apiConfigs: [], // 初始化API配置列表
+      isApiConfigDialogOpen: false, // 初始化对话框状态
 
       setInstallPrompt: (prompt) => set({ installPrompt: prompt }),
       setApiKey: (key) => set({ apiKey: key }),
@@ -245,6 +263,49 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           messages: state.messages.slice(0, index + 1),
         })),
+
+      // API配置相关方法
+      openApiConfigDialog: () => set({ isApiConfigDialogOpen: true }),
+
+      closeApiConfigDialog: () => set({ isApiConfigDialogOpen: false }),
+
+      saveApiConfig: (config) => {
+        const newConfig: ApiConfig = {
+          ...config,
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
+        };
+        set((state) => ({
+          apiConfigs: [...state.apiConfigs, newConfig]
+        }));
+      },
+
+      applyApiConfig: (configId) => {
+        const { apiConfigs } = get();
+        const config = apiConfigs.find(c => c.id === configId);
+        if (config) {
+          set({
+            apiKey: config.apiKey,
+            settings: {
+              ...get().settings,
+              customEndpoint: config.endpoint
+            }
+          });
+        }
+      },
+
+      deleteApiConfig: (configId) => {
+        set((state) => ({
+          apiConfigs: state.apiConfigs.filter(c => c.id !== configId)
+        }));
+      },
+
+      updateApiConfig: (configId, config) => {
+        set((state) => ({
+          apiConfigs: state.apiConfigs.map(c =>
+            c.id === configId ? { ...config, id: configId } : c
+          )
+        }));
+      },
     }),
     {
       name: 'gemini-pro-storage',
@@ -253,6 +314,7 @@ export const useAppStore = create<AppState>()(
         apiKey: state.apiKey,
         settings: state.settings,
         imageHistory: state.imageHistory, // 持久化图片历史记录
+        apiConfigs: state.apiConfigs, // 持久化API配置
       }),
     }
   )
