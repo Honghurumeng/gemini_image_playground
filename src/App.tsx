@@ -4,7 +4,7 @@ import { useUiStore } from './store/useUiStore';
 import { ChatInterface } from './components/ChatInterface';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { GlobalDialog } from './components/ui/GlobalDialog';
-import { Settings, Sun, Moon, Github, ImageIcon, Download, Sparkles } from 'lucide-react';
+import { Settings, Sun, Moon, ImageIcon, Sparkles, Plus } from 'lucide-react';
 import { lazyWithRetry, preloadComponents } from './utils/lazyLoadUtils';
 
 // Lazy load components
@@ -14,41 +14,12 @@ const ImageHistoryPanel = lazyWithRetry(() => import('./components/ImageHistoryP
 const PromptLibraryPanel = lazyWithRetry(() => import('./components/PromptLibraryPanel').then(module => ({ default: module.PromptLibraryPanel })));
 
 const App: React.FC = () => {
-  const { apiKey, setApiKey, settings, updateSettings, isSettingsOpen, toggleSettings, imageHistory, installPrompt, setInstallPrompt } = useAppStore();
+  const { apiKey, setApiKey, settings, updateSettings, isSettingsOpen, toggleSettings, imageHistory, clearHistory } = useAppStore();
   const { togglePromptLibrary, isPromptLibraryOpen, showDialog, addToast } = useUiStore();
 
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Stash the event so it can be triggered later.
-      setInstallPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, [setInstallPrompt]);
-
-  const handleInstallClick = async () => {
-    if (!installPrompt) return;
-    
-    // Show the install prompt
-    installPrompt.prompt();
-    
-    // Wait for the user to respond to the prompt
-    const { outcome } = await installPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
-    }
-    
-    // We've used the prompt, and can't use it again, throw it away
-    setInstallPrompt(null);
+  const handleNewChat = () => {
+    clearHistory();
+    addToast('已开始新对话', 'success');
   };
 
   // Preload components after mount
@@ -166,33 +137,17 @@ const App: React.FC = () => {
           </a>
           <div className="hidden sm:block">
             <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Nano Banana Pro</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              由 <a href="https://undyapi.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 hover:underline transition-colors">Undy API</a> 赞助联合开发
-            </p>
           </div>
         </div>
         
         {apiKey && (
           <div className="flex items-center gap-1 sm:gap-2">
-            {installPrompt && (
-              <button
-                onClick={handleInstallClick}
-                className="flex rounded-lg p-2 text-purple-600 dark:text-purple-400 transition hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                title="安装应用"
-              >
-                <Download className="h-6 w-6 animate-attract" />
-              </button>
-            )}
-
-            <a
-              href="https://github.com/faithleysath/UndyDraw"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              title="GitHub 仓库"
+            <button
+              onClick={handleNewChat}
+              className="rounded-lg border border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 text-sm font-medium text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <Github className="h-6 w-6 animate-heartbeat-mixed group-hover:animate-none" />
-            </a>
+              新对话
+            </button>
             <button
               onClick={() => setIsImageHistoryOpen(true)}
               className="relative rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"

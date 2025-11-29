@@ -1,7 +1,9 @@
 import { PromptItem } from '../types';
 
+// 使用 CORS 代理来避免跨域问题，提高国内访问速度
+const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 const GITHUB_PROMPT_URL = 'https://raw.githubusercontent.com/glidea/banana-prompt-quicker/main/prompts.json';
-const API_PROMPT_URL = '/api/prompts';
+const PROXIED_GITHUB_URL = CORS_PROXY + GITHUB_PROMPT_URL;
 const CACHE_KEY = 'prompt_library_cache';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24小时
 
@@ -21,15 +23,15 @@ export async function fetchPrompts(): Promise<PromptItem[]> {
       return cached;
     }
 
-    // 缓存过期或不存在,从 API 获取
+    // 缓存过期或不存在,从 GitHub 获取
     let response;
     try {
-      // 优先尝试使用 Vercel Edge Function 代理 (国内访问更快)
-      response = await fetch(API_PROMPT_URL);
-      if (!response.ok) throw new Error('API request failed');
+      // 优先使用 CORS 代理
+      response = await fetch(PROXIED_GITHUB_URL);
+      if (!response.ok) throw new Error('CORS proxy request failed');
     } catch (e) {
-      console.warn('Failed to fetch from API proxy, falling back to GitHub direct link:', e);
-      // 如果 API 失败 (例如在本地开发环境且未配置代理, 或者 API 挂了), 回退到直接请求 GitHub
+      console.warn('Failed to fetch from CORS proxy, falling back to GitHub direct link:', e);
+      // 如果代理失败, 回退到直接请求 GitHub
       response = await fetch(GITHUB_PROMPT_URL);
     }
 

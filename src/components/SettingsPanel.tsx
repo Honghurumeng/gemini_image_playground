@@ -1,61 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { useUiStore } from '../store/useUiStore';
-import { X, LogOut, Trash2, Share2, Bookmark, Download, Zap } from 'lucide-react';
+import { X, LogOut, Zap } from 'lucide-react';
 
 export const SettingsPanel: React.FC = () => {
-  const { apiKey, settings, updateSettings, toggleSettings, removeApiKey, clearHistory, isSettingsOpen, installPrompt, setInstallPrompt } = useAppStore();
+  const { apiKey, settings, updateSettings, toggleSettings, removeApiKey, isSettingsOpen } = useAppStore();
   const { addToast, showDialog } = useUiStore();
-  
-  const handleInstallClick = async () => {
-    if (!installPrompt) return;
-    
-    // Show the install prompt
-    installPrompt.prompt();
-    
-    // Wait for the user to respond to the prompt
-    const { outcome } = await installPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
-    }
-    
-    // We've used the prompt, and can't use it again, throw it away
-    setInstallPrompt(null);
-  };
-  
-  
-  const getBookmarkUrl = () => {
-    if (!apiKey) return window.location.href;
-    const params = new URLSearchParams();
-    params.set('apikey', apiKey);
-    if (settings.customEndpoint) params.set('endpoint', settings.customEndpoint);
-    if (settings.modelName) params.set('model', settings.modelName);
-    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-  };
-
-  const handleCreateBookmark = () => {
-    if (!apiKey) return;
-    const url = getBookmarkUrl();
-    
-    // Update address bar without reloading
-    window.history.pushState({ path: url }, '', url);
-
-    // Copy to clipboard
-    navigator.clipboard.writeText(url).then(() => {
-        addToast("URL 已更新并复制！按 Ctrl+D 添加书签。", 'success');
-    }).catch(err => {
-        console.error("复制失败", err);
-        showDialog({
-            type: 'alert',
-            title: '复制失败',
-            message: `请手动复制此 URL：\n${url}`,
-            onConfirm: () => {}
-        });
-    });
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -227,67 +177,10 @@ export const SettingsPanel: React.FC = () => {
              逐个 token 流式传输模型的响应。对于一次性响应请禁用。
           </p>
         </section>
-        
-        {/* App Installation */}
-        {installPrompt && (
-          <section className="pt-4 border-t border-gray-200 dark:border-gray-800 mb-4">
-            <button
-              onClick={handleInstallClick}
-              className="w-full flex items-center justify-center gap-2 rounded-lg border border-purple-200 dark:border-purple-500/30 bg-purple-50 dark:bg-purple-500/10 p-3 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-500/20 transition"
-            >
-              <Download className="h-4 w-4" />
-              <span>安装 UndyDraw 应用</span>
-            </button>
-            <p className="mt-2 text-xs text-center text-gray-400 dark:text-gray-500">
-              安装到您的设备以获得原生应用体验。
-            </p>
-          </section>
-        )}
-
-        {/* Share Configuration */}
-        <section className="pt-4 border-t border-gray-200 dark:border-gray-800 mb-4">
-           <div className="flex gap-2 mb-2">
-             <button
-               onClick={handleCreateBookmark}
-               className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 p-3 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition"
-             >
-               <Share2 className="h-4 w-4" />
-               <span className="text-xs sm:text-sm">更新 URL</span>
-             </button>
-
-             <a
-               href={getBookmarkUrl()}
-               onClick={(e) => e.preventDefault()} // Prevent navigation, strictly for dragging
-               className="flex-1 flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 p-3 text-gray-500 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-500 dark:hover:text-blue-400 cursor-grab active:cursor-grabbing transition text-sm font-medium"
-               title="将此按钮拖动到书签栏"
-             >
-               <Bookmark className="h-4 w-4" />
-               <span className="text-xs sm:text-sm">拖动到书签</span>
-             </a>
-           </div>
-        </section>
-
+  
+  
         {/* Data Management */}
         <section className="pt-4 border-t border-gray-200 dark:border-gray-800">
-            <button
-                onClick={() => {
-                    showDialog({
-                        type: 'confirm',
-                        title: '清除历史记录',
-                        message: "您确定要删除所有聊天记录吗？此操作无法撤销。",
-                        confirmLabel: "清除",
-                        onConfirm: () => {
-                            clearHistory();
-                            toggleSettings();
-                            addToast("对话已清除", 'success');
-                        }
-                    });
-                }}
-                className="w-full flex items-center justify-center gap-2 rounded-lg border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/5 p-3 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/10 transition mb-3"
-            >
-                <Trash2 className="h-4 w-4" />
-                <span>清除对话</span>
-            </button>
 
             <button
                 onClick={() => {

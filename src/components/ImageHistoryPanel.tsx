@@ -212,7 +212,7 @@ export const ImageHistoryPanel: React.FC<Props> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+        <div className="flex-1 overflow-y-auto p-4">
           {filteredHistory.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 dark:text-gray-500">
               <ImageIcon className="h-16 w-16 mb-4 opacity-20" />
