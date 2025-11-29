@@ -172,7 +172,6 @@ http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
 | 图片上传 | ✅ 点击上传 | ✅ 点击 + 拖拽上传 |
 | 图片下载 | ❌ 需右键另存为 | ✅ 悬停一键下载 |
 | 图片历史 | ❌ 无 | ✅ 自动收集 + 预览 |
-| 项目文档 | ⚠️ 基础 README | ✅ README + CLAUDE.md |
 
 ## 🤝 贡献
 

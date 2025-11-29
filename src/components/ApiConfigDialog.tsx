@@ -150,7 +150,7 @@ export const ApiConfigDialog: React.FC = () => {
                     value={formData.endpoint}
                     onChange={(e) => setFormData({ ...formData, endpoint: (e.target as HTMLInputElement).value })}
                     className="w-full rounded-md bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none"
-                    placeholder="https://undyapi.com"
+                    placeholder="https://generativelanguage.googleapis.com"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -229,7 +229,7 @@ export const ApiConfigDialog: React.FC = () => {
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">当前配置</h3>
             <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
               <p>API Key: {apiKey ? `${apiKey.substring(0, 10)}...` : '未设置'}</p>
-              <p>接口地址: {settings.customEndpoint || 'https://undyapi.com'}</p>
+              <p>接口地址: {settings.customEndpoint || 'https://generativelanguage.googleapis.com'}</p>
             </div>
           </div>
         </div>

@@ -84,17 +84,7 @@ export const ApiKeyModal: React.FC = () => {
                       value={endpoint}
                       onChange={(e) => setEndpoint(e.currentTarget.value)}
                       className="w-full rounded-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:border-blue-500 focus:outline-none"
-                      placeholder="https://undyapi.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">模型名称</label>
-                    <input
-                      type="text"
-                      value={model}
-                      onChange={(e) => setModel(e.currentTarget.value)}
-                      className="w-full rounded-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:border-blue-500 focus:outline-none"
-                      placeholder="gemini-3-pro-image-preview"
+                      placeholder="https://generativelanguage.googleapis.com"
                     />
                   </div>
                 </div>
@@ -110,18 +100,6 @@ export const ApiKeyModal: React.FC = () => {
             开始创作
           </button>
         </form>
-
-        <div className="mt-6 flex justify-center">
-          <a 
-            href="https://vip.undyingapi.com/console/token" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center text-sm text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition"
-          >
-            <span>获取 Gemini API Key</span>
-            <ExternalLink className="ml-1 h-3 w-3" />
-          </a>
-        </div>
       </div>
     </div>
   );

@@ -207,7 +207,7 @@ export const SettingsPanel: React.FC = () => {
 
         {/* Info */}
         <div className="mt-1 pb-4 text-center text-[10px] text-gray-400 dark:text-gray-600 space-y-1">
-           <p className="truncate px-4">接口地址: {settings.customEndpoint || 'https://undyapi.com'}</p>
+           <p className="truncate px-4">接口地址: {settings.customEndpoint || 'https://generativelanguage.googleapis.com'}</p>
         </div>
       </div>
     </div>

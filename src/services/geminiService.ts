@@ -122,7 +122,7 @@ export const streamGeminiResponse = async function* (
 ) {
   const { GoogleGenAI } = await import("@google/genai");
   const ai = new GoogleGenAI(
-    { apiKey, httpOptions: { baseUrl: settings.customEndpoint || 'https://undyapi.com' } }
+    { apiKey, httpOptions: { baseUrl: settings.customEndpoint || 'https://generativelanguage.googleapis.com' } }
   );
 
   // Filter out thought parts from history to avoid sending thought chains back to the model
@@ -236,7 +236,7 @@ export const generateContent = async (
   settings: AppSettings,
   signal?: AbortSignal
 ) => {
-  const baseUrl = settings.customEndpoint || 'https://undyapi.com';
+  const baseUrl = settings.customEndpoint || 'https://generativelanguage.googleapis.com';
   console.log('初始化 GoogleGenAI，baseUrl:', baseUrl);
 
   const { GoogleGenAI } = await import("@google/genai");
@@ -273,7 +273,7 @@ export const generateContent = async (
     }
 
     console.log('发送请求到 Gemini API...');
-    console.log('Base URL:', settings.customEndpoint || 'https://undyapi.com');
+    console.log('Base URL:', settings.customEndpoint || 'https://generativelanguage.googleapis.com');
     console.log('Model:', settings.modelName || "gemini-3-pro-image-preview");
 
     const response = await ai.models.generateContent({

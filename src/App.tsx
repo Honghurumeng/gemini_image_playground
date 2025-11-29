@@ -131,7 +131,7 @@ const App: React.FC = () => {
       <header className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-950/50 px-6 py-4 backdrop-blur-md z-10 transition-colors duration-200">
         <div className="flex items-center gap-3">
           <a 
-            href="https://undyapi.com" 
+            href="https://github.com/Honghurumeng/gemini_image_playground" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex h-10 w-10 items-center justify-center overflow-hidden hover:opacity-80 transition-opacity"
