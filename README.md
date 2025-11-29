@@ -1,4 +1,4 @@
-# UndyDraw - Gemini 3 Pro 客户端
+# gemini_image_playground
 
 这是一个基于 React 的现代化纯前端应用，专为与 Google 的 **Gemini 3 Pro** 模型交互而设计。它提供了一个流畅的聊天界面，支持多模态输入，并在等待 AI 思考时提供趣味性的互动体验。
 
@@ -83,39 +83,7 @@
 ### 前置要求
 
 - Node.js (建议 v18 或更高版本)
-- **Bun** (>= 1.2.1) - 本项目强制使用 Bun 作为包管理器
 - Google Gemini API Key ([在此获取](https://aistudio.google.com/app/apikey))
-
-### 安装与运行
-
-1. **克隆仓库**
-
-   ```bash
-   git clone https://github.com/deijing/UndyDraw.git
-   cd UndyDraw
-   ```
-
-2. **安装依赖**
-
-   > 本项目配置了 `preinstall` 钩子，强制使用 `bun` 安装依赖。
-
-   ```bash
-   bun install
-   ```
-
-3. **启动开发服务器**
-
-   ```bash
-   bun dev
-   ```
-
-   启动后，在浏览器访问控制台输出的地址（通常是 `http://localhost:3000`）。
-
-4. **构建生产版本**
-
-   ```bash
-   bun build
-   ```
 
 ## ⚙️ 使用说明
 
@@ -131,7 +99,6 @@
 
 - `apikey`: 预填 API Key
 - `endpoint`: 自定义 API 端点 (Base URL)
-- `model`: 自定义模型名称
 
 **示例：**
 ```
@@ -207,10 +174,6 @@ http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
 | 图片历史 | ❌ 无 | ✅ 自动收集 + 预览 |
 | 项目文档 | ⚠️ 基础 README | ✅ README + CLAUDE.md |
 
-## 📝 开发文档
-
-详细的技术架构和开发指南请查看 [CLAUDE.md](./CLAUDE.md)
-
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
@@ -222,4 +185,3 @@ AGPL-3.0
 ## 🙏 致谢
 
 - 原项目：[faithleysath/UndyDraw](https://github.com/faithleysath/UndyDraw)
-- API 赞助：[Undy API](https://undyapi.com)
