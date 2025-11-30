@@ -147,7 +147,7 @@ export const StylePanel: React.FC = () => {
 
       {/* Style Panel */}
       <div className={`
-        fixed inset-y-0 right-0 w-full sm:w-96 bg-white dark:bg-gray-950 shadow-2xl z-50
+        fixed inset-y-0 right-0 w-full sm:w-[768px] bg-white dark:bg-gray-950 shadow-2xl z-50
         transform transition-transform duration-300 ease-in-out
         ${isStylePanelOpen ? 'translate-x-0' : 'translate-x-full'}
         border-l border-gray-200 dark:border-gray-800 flex flex-col
@@ -182,7 +182,7 @@ export const StylePanel: React.FC = () => {
               <div className="relative">
                 <textarea
                   value={styleSettings.artStyle}
-                  onChange={(e) => updateStyleSettings({ artStyle: e.target.value })}
+                  onChange={(e) => updateStyleSettings({ artStyle: (e.target as HTMLTextAreaElement).value })}
                   placeholder="请输入画风，如：写实风格、动漫风格、水彩风格等"
                   rows={4}
                   className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg
@@ -223,7 +223,7 @@ export const StylePanel: React.FC = () => {
                         <input
                           type="text"
                           value={editCharacterName}
-                          onChange={(e) => setEditCharacterName(e.target.value)}
+                          onChange={(e) => setEditCharacterName((e.target as HTMLInputElement).value)}
                           placeholder="角色名称"
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                                    bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
@@ -232,7 +232,7 @@ export const StylePanel: React.FC = () => {
                         <input
                           type="text"
                           value={editCharacterDescription}
-                          onChange={(e) => setEditCharacterDescription(e.target.value)}
+                          onChange={(e) => setEditCharacterDescription((e.target as HTMLInputElement).value)}
                           placeholder="角色描述"
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                                    bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
@@ -305,7 +305,7 @@ export const StylePanel: React.FC = () => {
                   <input
                     type="text"
                     value={newCharacterName}
-                    onChange={(e) => setNewCharacterName(e.target.value)}
+                    onChange={(e) => setNewCharacterName((e.target as HTMLInputElement).value)}
                     placeholder="新角色名称"
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                              bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
@@ -314,7 +314,7 @@ export const StylePanel: React.FC = () => {
                   <input
                     type="text"
                     value={newCharacterDescription}
-                    onChange={(e) => setNewCharacterDescription(e.target.value)}
+                    onChange={(e) => setNewCharacterDescription((e.target as HTMLInputElement).value)}
                     placeholder="新角色描述"
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                              bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
@@ -340,7 +340,7 @@ export const StylePanel: React.FC = () => {
               <div className="relative">
                 <textarea
                   value={styleSettings.contentDescription}
-                  onChange={(e) => updateStyleSettings({ contentDescription: e.target.value })}
+                  onChange={(e) => updateStyleSettings({ contentDescription: (e.target as HTMLTextAreaElement).value })}
                   placeholder="描述你想要的画面内容、场景、元素等..."
                   rows={4}
                   className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg
