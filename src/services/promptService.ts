@@ -1,9 +1,7 @@
 import { PromptItem } from '../types';
 
-// 使用 CORS 代理来避免跨域问题，提高国内访问速度
-const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
-const GITHUB_PROMPT_URL = 'https://raw.githubusercontent.com/glidea/banana-prompt-quicker/main/prompts.json';
-const PROXIED_GITHUB_URL = CORS_PROXY + GITHUB_PROMPT_URL;
+// 直接从本地 JSON 文件获取数据
+const PROMPTS_URL = '/prompts.json';
 const CACHE_KEY = 'prompt_library_cache';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24小时
 
@@ -13,7 +11,7 @@ interface CachedData {
 }
 
 /**
- * 从缓存或 API 获取提示词数据
+ * 从缓存或本地 JSON 文件获取提示词数据
  */
 export async function fetchPrompts(): Promise<PromptItem[]> {
   try {
@@ -23,36 +21,14 @@ export async function fetchPrompts(): Promise<PromptItem[]> {
       return cached;
     }
 
-    // 缓存过期或不存在,从 GitHub 获取
-    let response;
-    try {
-      // 优先使用 CORS 代理
-      response = await fetch(PROXIED_GITHUB_URL);
-      if (!response.ok) throw new Error('CORS proxy request failed');
-    } catch (e) {
-      console.warn('Failed to fetch from CORS proxy, falling back to GitHub direct link:', e);
-      // 如果代理失败, 回退到直接请求 GitHub
-      response = await fetch(GITHUB_PROMPT_URL);
-    }
+    // 缓存过期或不存在，直接从本地文件获取
+    const response = await fetch(PROMPTS_URL);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Failed to load prompts.json: ${response.status}`);
     }
 
-    // 先获取响应文本内容进行检查
-    const responseText = await response.text();
-    console.log('API 原始返回内容:', responseText);
-    console.log('响应 Content-Type:', response.headers.get('content-type'));
-
-    // 尝试解析为 JSON
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('JSON 解析失败:', parseError);
-      console.error('返回内容前100字符:', responseText.substring(0, 100));
-      throw new Error(`Invalid JSON response: ${parseError.message}`);
-    }
+    const data = await response.json();
 
     // 验证数据格式
     if (!Array.isArray(data)) {
@@ -69,13 +45,14 @@ export async function fetchPrompts(): Promise<PromptItem[]> {
   } catch (error) {
     console.error('Failed to fetch prompts:', error);
 
-    // 如果网络请求失败,尝试返回过期的缓存数据
+    // 如果请求失败，尝试返回过期的缓存数据
     const staleCache = getStaleCache();
     if (staleCache) {
+      console.warn('Using stale cache due to file loading failure');
       return staleCache;
     }
 
-    throw new Error('无法获取提示词数据,请检查网络连接后重试');
+    throw new Error('无法加载提示词数据，请确保文件存在');
   }
 }
 
