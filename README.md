@@ -13,6 +13,7 @@
   - 支持图片上传与分析（最多支持 14 张参考图片）
   - 支持在页面任意位置粘贴剪贴板图片，自动加入参考图列表
   - **✨ 拖拽上传**：支持将图片直接拖拽到输入框上传，无需点击按钮
+  - **🖌️ 内置画板（Excalidraw）**：支持在应用内手绘草图、流程图等，一键导出为图片并作为参考图参与生成
 
 ### 🖼️ 图片功能 (新增)
 
@@ -32,6 +33,12 @@
   - 点击图片全屏查看 + 提示词详情
   - 支持单张下载或批量管理
   - 数据持久化保存到浏览器本地
+
+- **🖌️ 画板绘制（基于 Excalidraw）**：
+  - 点击输入框左侧的调色板按钮即可打开全屏画板
+  - 提供矩形、椭圆、箭头、文本、自由绘制、图像等丰富工具
+  - 支持暗色 / 亮色主题自动切换
+  - 一键导出为 PNG 并自动作为参考图片加入当前会话（计入 14 张上限）
 
 
 ### 🎮 等待街机模式
@@ -77,6 +84,7 @@
 - **AI SDK**: [Google GenAI SDK](https://www.npmjs.com/package/@google/genai)
 - **图标库**: [Lucide React](https://lucide.dev/)
 - **Markdown**: React Markdown + Remark GFM
+- **画板组件**: [Excalidraw](https://github.com/excalidraw/excalidraw)（`@excalidraw/excalidraw`）
 
 ## 🚀 快速开始
 
@@ -105,9 +113,9 @@
 http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
 ```
 
-### 3. 图片上传方式
+### 3. 图片上传方式 / 来源
 
-支持两种图片上传方式：
+支持三种图片来源：
 
 #### 方式一：点击上传
 - 点击输入框左侧的 📷 图标
@@ -117,6 +125,14 @@ http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
 - 直接将图片拖拽到输入框区域
 - 看到蓝色高亮边框后松开鼠标
 - 图片自动上传并显示预览
+
+#### 方式三：画板绘制（Excalidraw） ✨
+- 点击输入框左侧的 🎨 调色板图标
+- 将会打开全屏 Excalidraw 画板
+- 使用上方工具栏绘制草图 / 流程图 / 标注等内容
+- 点击右上角的「保存为图片」按钮
+  - 画布会导出为 PNG 图片
+  - 自动作为一张新的参考图片添加到当前会话的附件列表中
 
 ### 4. 图片历史记录 ✨ (新增)
 
@@ -146,10 +162,11 @@ http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
 │   ├── ui/                      # 通用 UI 组件 (Toast, Dialog)
 │   ├── ApiKeyModal.tsx          # API Key 输入弹窗
 │   ├── ChatInterface.tsx        # 主聊天区域
-│   ├── InputArea.tsx            # 输入框与文件上传 (支持拖拽)
+│   ├── InputArea.tsx            # 输入框与文件上传 (支持拖拽 & 画板)
 │   ├── MessageBubble.tsx        # 消息气泡与 Markdown 渲染 (支持下载)
 │   ├── SettingsPanel.tsx        # 设置面板
 │   ├── ImageHistoryPanel.tsx    # 图片历史记录面板 ✨
+│   ├── DrawingBoard.tsx         # 画板组件（基于 Excalidraw）✨
 │   └── ThinkingIndicator.tsx    # 思维链指示器与游戏入口
 ├── services/                 # 服务层
 │   └── geminiService.ts         # Google GenAI SDK 集成
@@ -172,6 +189,7 @@ http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
 | 图片上传 | ✅ 点击上传 | ✅ 点击 + 拖拽上传 |
 | 图片下载 | ❌ 需右键另存为 | ✅ 悬停一键下载 |
 | 图片历史 | ❌ 无 | ✅ 自动收集 + 预览 |
+| 画板绘图 | ❌ 无 | ✅ 内置 Excalidraw 画板，全屏绘制 + 一键导出 |
 
 ## 🤝 贡献
 
