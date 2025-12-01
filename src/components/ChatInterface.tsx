@@ -25,40 +25,15 @@ export const ChatInterface: React.FC = () => {
     deleteMessage,
     sliceMessages
   } = useAppStore();
-  
-  const [showArcade, setShowArcade] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (isLoading) {
-        setShowArcade(true);
-        setIsExiting(false);
-    }
-  }, [isLoading]);
-
-  const handleCloseArcade = () => {
-    setIsExiting(true);
-    setTimeout(() => {
-        setShowArcade(false);
-        setIsExiting(false);
-    }, 200); // Match animation duration
-  };
-
-  const handleToggleArcade = () => {
-      if (showArcade && !isExiting) {
-          handleCloseArcade();
-      } else if (!showArcade) {
-          setShowArcade(true);
-      }
-  };
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isLoading, showArcade]);
+  }, [messages, isLoading]);
 
   const handleSend = async (text: string, attachments: Attachment[]) => {
     if (!apiKey) return;
@@ -296,27 +271,23 @@ export const ChatInterface: React.FC = () => {
           </ErrorBoundary>
         ))}
 
-        {showArcade && (
+        {isLoading && (
             <React.Suspense fallback={
-                <div className="flex w-full justify-center py-6 fade-in-up">
-                    <div className="w-full max-w-xl h-96 rounded-xl bg-gray-100 dark:bg-gray-900/50 animate-pulse border border-gray-200 dark:border-gray-800"></div>
+                <div className="flex w-full justify-center py-6">
+                    <div className="h-12 w-full max-w-md rounded-lg bg-gray-100 dark:bg-gray-900/50 animate-pulse border border-gray-200 dark:border-gray-800"></div>
                 </div>
             }>
-                <ThinkingIndicator 
-                    isThinking={isLoading} 
-                    onClose={handleCloseArcade}
-                    isExiting={isExiting}
+                <ThinkingIndicator
+                    isThinking={isLoading}
                 />
             </React.Suspense>
         )}
       </div>
 
-      <InputArea 
-        onSend={handleSend} 
-        onStop={handleStop} 
+      <InputArea
+        onSend={handleSend}
+        onStop={handleStop}
         disabled={isLoading}
-        onOpenArcade={handleToggleArcade}
-        isArcadeOpen={showArcade}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, ImagePlus, X, Square, Gamepad2, Sparkles, Palette } from 'lucide-react';
+import { Send, ImagePlus, X, Square, Sparkles, Palette } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { useUiStore } from '../store/useUiStore';
 import { Attachment } from '../types';
@@ -9,12 +9,10 @@ import { DrawingBoard } from './DrawingBoard';
 interface Props {
   onSend: (text: string, attachments: Attachment[]) => void;
   onStop: () => void;
-  onOpenArcade?: () => void;
-  isArcadeOpen?: boolean;
   disabled: boolean;
 }
 
-export const InputArea: React.FC<Props> = ({ onSend, onStop, onOpenArcade, isArcadeOpen, disabled }) => {
+export const InputArea: React.FC<Props> = ({ onSend, onStop, disabled }) => {
   const { inputText, setInputText } = useAppStore();
   const { togglePromptLibrary, isPromptLibraryOpen } = useUiStore();
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -263,20 +261,7 @@ export const InputArea: React.FC<Props> = ({ onSend, onStop, onOpenArcade, isArc
             <Sparkles className="h-5 w-5" />
           </button>
 
-          {onOpenArcade && (
-            <button
-              onClick={onOpenArcade}
-              className={`mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
-                  isArcadeOpen
-                    ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
-                    : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-purple-600 dark:hover:text-purple-400'
-              }`}
-              title={isArcadeOpen ? "关闭 Arcade" : "打开 Arcade"}
-            >
-              <Gamepad2 className="h-5 w-5" />
-            </button>
-          )}
-
+          
           <textarea
             ref={textareaRef}
             value={inputText}

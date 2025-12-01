@@ -34,12 +34,7 @@ const App: React.FC = () => {
       () => import('./components/ApiConfigDialog'),
       // Also preload components used in ChatInterface
       () => import('./components/ThinkingIndicator'),
-      () => import('./components/MessageBubble'),
-      // Preload Games
-      () => import('./components/games/SnakeGame'),
-      () => import('./components/games/DinoGame'),
-      () => import('./components/games/LifeGame'),
-      () => import('./components/games/Puzzle2048')
+      () => import('./components/MessageBubble')
     ]);
   }, []);
   const [mounted, setMounted] = useState(false);
