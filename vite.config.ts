@@ -48,19 +48,6 @@ export default defineConfig(({ mode }) => {
         }),
       ],
       define: {
-        // 注入开发环境版本信息
-        __APP_VERSION__: JSON.stringify(mode === 'production' ? 'build-time-version' : 'dev-' + Date.now())
-      },
-      // 构建配置
-      build: {
-        rollupOptions: {
-          output: {
-            manualChunks: {
-              'google-genai': ['@google/genai'],
-              'markdown-libs': ['react-markdown', 'remark-gfm']
-            }
-          }
-        }
       },
       resolve: {
         alias: {
@@ -69,6 +56,16 @@ export default defineConfig(({ mode }) => {
           'react-dom/test-utils': 'preact/test-utils',
           'react-dom': 'preact/compat',     // Must be below test-utils
           'react/jsx-runtime': 'preact/jsx-runtime'
+        }
+      },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'google-genai': ['@google/genai'],
+              'markdown-libs': ['react-markdown', 'remark-gfm']
+            }
+          }
         }
       }
     };
