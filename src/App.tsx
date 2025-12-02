@@ -4,7 +4,7 @@ import { useUiStore } from './store/useUiStore';
 import { ChatInterface } from './components/ChatInterface';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { GlobalDialog } from './components/ui/GlobalDialog';
-import { Settings, Sun, Moon, ImageIcon, Sparkles, Plus, Palette } from 'lucide-react';
+import { Settings, Sun, Moon, ImageIcon, Sparkles, Plus, Palette, Github } from 'lucide-react';
 import { lazyWithRetry, preloadComponents } from './utils/lazyLoadUtils';
 
 // Lazy load components
@@ -188,6 +188,15 @@ const App: React.FC = () => {
             >
               {settings.theme === 'dark' ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
             </button>
+            <a
+              href="https://github.com/Honghurumeng/gemini_image_playground"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              title="GitHub"
+            >
+              <Github className="h-6 w-6" />
+            </a>
             <button
               onClick={toggleSettings}
               className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
