@@ -48,16 +48,10 @@ export default defineConfig(({ mode }) => {
         }),
       ],
       define: {
+        // 注入开发环境版本信息
+        __APP_VERSION__: JSON.stringify(mode === 'production' ? 'build-time-version' : 'dev-' + Date.now())
       },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, './src'),
-          'react': 'preact/compat',
-          'react-dom/test-utils': 'preact/test-utils',
-          'react-dom': 'preact/compat',     // Must be below test-utils
-          'react/jsx-runtime': 'preact/jsx-runtime'
-        }
-      },
+      // 构建配置
       build: {
         rollupOptions: {
           output: {
@@ -66,6 +60,15 @@ export default defineConfig(({ mode }) => {
               'markdown-libs': ['react-markdown', 'remark-gfm']
             }
           }
+        }
+      },
+      resolve: {
+        alias: {
+          '@': path.resolve(__dirname, './src'),
+          'react': 'preact/compat',
+          'react-dom/test-utils': 'preact/test-utils',
+          'react-dom': 'preact/compat',     // Must be below test-utils
+          'react/jsx-runtime': 'preact/jsx-runtime'
         }
       }
     };
