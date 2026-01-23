@@ -76,7 +76,7 @@ export const ApiConfigDialog: React.FC = () => {
       name: '',
       apiKey: apiKey || '',
       endpoint: settings.customEndpoint || '',
-      model: ''
+      model: settings.modelName || ''
     });
     setShowSaveForm(true);
     setEditingConfig(null);
@@ -153,6 +153,21 @@ export const ApiConfigDialog: React.FC = () => {
                     placeholder="https://generativelanguage.googleapis.com"
                   />
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    模型名称
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.model}
+                    onChange={(e) => setFormData({ ...formData, model: (e.target as HTMLInputElement).value })}
+                    className="w-full rounded-md bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none"
+                    placeholder="gemini-3-pro-image-preview"
+                  />
+                  <p className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">
+                    留空则使用默认模型
+                  </p>
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={handleSaveConfig}
@@ -211,6 +226,7 @@ export const ApiConfigDialog: React.FC = () => {
                   <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400 mb-3">
                     <p>接口: {config.endpoint}</p>
                     <p>API Key: {config.apiKey.substring(0, 10)}...</p>
+                    <p>模型: {config.model || '默认模型'}</p>
                   </div>
 
                   <button
@@ -230,6 +246,7 @@ export const ApiConfigDialog: React.FC = () => {
             <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
               <p>API Key: {apiKey ? `${apiKey.substring(0, 10)}...` : '未设置'}</p>
               <p>接口地址: {settings.customEndpoint || 'https://generativelanguage.googleapis.com'}</p>
+              <p>模型: {settings.modelName || 'gemini-3-pro-image-preview'}</p>
             </div>
           </div>
         </div>

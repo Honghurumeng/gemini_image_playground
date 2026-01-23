@@ -6,6 +6,49 @@ import { User, Sparkles, ChevronDown, ChevronRight, BrainCircuit, Trash2, Rotate
 import { useUiStore } from '../store/useUiStore';
 import { downloadImage, openImageInNewTab } from '../utils/imageUtils';
 
+interface ParsedPart {
+  type: 'text' | 'image';
+  content: string;
+  mimeType?: string;
+}
+
+const parseMarkdownImages = (text: string): ParsedPart[] => {
+  const parts: ParsedPart[] = [];
+  const imageRegex = /!\[([^\]]*)\]\((data:image\/[^)]+)\)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = imageRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({
+        type: 'text',
+        content: text.slice(lastIndex, match.index)
+      });
+    }
+
+    const alt = match[1];
+    const dataUrl = match[2];
+    const mimeType = dataUrl.split(';')[0].split(':')[1] || 'image/png';
+
+    parts.push({
+      type: 'image',
+      content: dataUrl.split(',')[1],
+      mimeType
+    });
+
+    lastIndex = imageRegex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push({
+      type: 'text',
+      content: text.slice(lastIndex)
+    });
+  }
+
+  return parts;
+};
+
 interface Props {
   message: ChatMessage;
   isLast: boolean;
@@ -108,6 +151,41 @@ const ImageWithDownload: React.FC<{ part: Part; index: number }> = ({ part, inde
   );
 };
 
+const ImageFromMarkdown: React.FC<{ base64Data: string; mimeType: string; index: number }> = ({ base64Data, mimeType, index }) => {
+  const [isImageHovered, setIsImageHovered] = useState(false);
+
+  return (
+    <div
+      key={`md-img-${index}`}
+      className="relative mt-3 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-950/50 max-w-lg mx-auto group"
+      onMouseEnter={() => setIsImageHovered(true)}
+      onMouseLeave={() => setIsImageHovered(false)}
+    >
+      <img
+        src={`data:${mimeType};base64,${base64Data}`}
+        alt="Generated content"
+        className="h-auto max-w-full object-contain cursor-pointer"
+        loading="lazy"
+        onClick={() => openImageInNewTab(mimeType, base64Data)}
+        title="点击查看大图"
+      />
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          downloadImage(mimeType, base64Data);
+        }}
+        className={`absolute top-3 right-3 p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white shadow-lg backdrop-blur-sm transition-all ${
+          isImageHovered ? 'opacity-100' : 'opacity-0'
+        }`}
+        title="下载图片"
+      >
+        <Download className="h-5 w-5" />
+      </button>
+    </div>
+  );
+};
+
 const ThinkingBlock: React.FC<{ parts: Part[], duration?: number, isFinished: boolean }> = ({ parts, duration, isFinished }) => {
   const [isExpanded, setIsExpanded] = useState(!isFinished);
 
@@ -181,17 +259,86 @@ export const MessageBubble: React.FC<Props> = ({ message, isLast, isGenerating, 
     if (Array.isArray(item)) {
       return <ThinkingBlock key={`think-${index}`} parts={item} duration={message.thinkingDuration} isFinished={!isLast || !isGenerating} />;
     }
-    
+
     const part = item;
 
     // 2. Handle Text (Markdown)
     if (part.text) {
+      const hasDataUriImage = /!\[([^\]]*)\]\(data:image\/[^)]+\)/.test(part.text);
+      if (hasDataUriImage) {
+        const parsedParts = parseMarkdownImages(part.text);
+        return (
+          <div key={index} className="markdown-content leading-relaxed wrap-break-word overflow-hidden">
+            {parsedParts.map((parsedPart, i) => {
+              if (parsedPart.type === 'image') {
+                return (
+                  <ImageFromMarkdown
+                    key={`${index}-img-${i}`}
+                    base64Data={parsedPart.content}
+                    mimeType={parsedPart.mimeType || 'image/png'}
+                    index={i}
+                  />
+                );
+              }
+              if (parsedPart.type === 'text' && parsedPart.content.trim()) {
+                return (
+                  <ReactMarkdown
+                    key={`${index}-text-${i}`}
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ({children}) => <p className="mb-3 last:mb-0">{children}</p>,
+                      a: ({href, children}) => (
+                        <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                          {children}
+                        </a>
+                      ),
+                      ul: ({children}) => <ul className="list-disc pl-5 mb-3 space-y-1">{children}</ul>,
+                      ol: ({children}) => <ol className="list-decimal pl-5 mb-3 space-y-1">{children}</ol>,
+                      li: ({children}) => <li className="pl-1">{children}</li>,
+                      code: ({children}) => (
+                        <code className="rounded bg-gray-200 dark:bg-gray-800/50 px-1 py-0.5 font-mono text-sm text-blue-600 dark:text-blue-200">
+                          {children}
+                        </code>
+                      ),
+                      pre: ({children}) => (
+                        <pre className="mb-3 overflow-x-auto rounded-lg bg-gray-100 dark:bg-gray-900 p-3 text-sm border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200">
+                          {children}
+                        </pre>
+                      ),
+                      blockquote: ({children}) => (
+                        <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 py-1 my-3 text-gray-500 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/30 rounded-r">
+                          {children}
+                        </blockquote>
+                      ),
+                      table: ({children}) => (
+                        <div className="overflow-x-auto mb-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">{children}</table>
+                        </div>
+                      ),
+                      thead: ({children}) => <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200">{children}</thead>,
+                      tbody: ({children}) => <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900/50">{children}</tbody>,
+                      tr: ({children}) => <tr>{children}</tr>,
+                      th: ({children}) => (
+                        <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">{children}</th>
+                      ),
+                      td: ({children}) => <td className="px-3 py-2 text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{children}</td>,
+                    }}
+                  >
+                    {parsedPart.content}
+                  </ReactMarkdown>
+                );
+              }
+              return null;
+            })}
+          </div>
+        );
+      }
+
       return (
         <div key={index} className="markdown-content leading-relaxed wrap-break-word overflow-hidden">
-          <ReactMarkdown 
+          <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              // Custom components to ensure styles match the theme
               p: ({children}) => <p className="mb-3 last:mb-0">{children}</p>,
               a: ({href, children}) => (
                 <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
@@ -216,6 +363,43 @@ export const MessageBubble: React.FC<Props> = ({ message, isLast, isGenerating, 
                   {children}
                 </blockquote>
               ),
+              img: ({src, alt}) => {
+                const imgSrc = typeof src === 'string' ? src : '';
+                const isDataUrl = imgSrc.startsWith('data:');
+
+                const handleClick = () => {
+                  if (imgSrc) {
+                    if (isDataUrl) {
+                      try {
+                        const byteCharacters = atob(imgSrc.split(',')[1]);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                          byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: imgSrc.split(';')[0].split(':')[1] });
+                        const blobUrl = URL.createObjectURL(blob);
+                        window.open(blobUrl, '_blank');
+                      } catch (error) {
+                        console.error('Failed to open image:', error);
+                      }
+                    } else {
+                      window.open(imgSrc, '_blank');
+                    }
+                  }
+                };
+
+                return (
+                  <img
+                    src={imgSrc}
+                    alt={alt || 'Image'}
+                    className="max-w-full h-auto rounded-lg my-2 cursor-pointer"
+                    loading="lazy"
+                    onClick={handleClick}
+                    title="点击查看大图"
+                  />
+                );
+              },
               table: ({children}) => (
                 <div className="overflow-x-auto mb-3 rounded-lg border border-gray-200 dark:border-gray-700">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">{children}</table>
@@ -235,7 +419,7 @@ export const MessageBubble: React.FC<Props> = ({ message, isLast, isGenerating, 
         </div>
       );
     }
-    
+
     // 3. Handle Images
     if (part.inlineData) {
       return <ImageWithDownload key={index} part={part} index={index} />;

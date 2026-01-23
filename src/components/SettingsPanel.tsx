@@ -1,26 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { useUiStore } from '../store/useUiStore';
-import { X, Settings, Zap } from 'lucide-react';
+import { X, Settings } from 'lucide-react';
 
 export const SettingsPanel: React.FC = () => {
   const { apiKey, settings, updateSettings, toggleSettings, removeApiKey, isSettingsOpen, openApiConfigDialog } = useAppStore();
   const { addToast, showDialog } = useUiStore();
-
-  const handleProModeToggle = (isChecked: boolean) => {
-    const newModel = isChecked ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image-preview';
-    updateSettings({
-      isPro: isChecked,
-      modelName: newModel,
-      resolution: isChecked ? '2K' : '1K'
-    });
-    addToast(
-      isChecked
-        ? `已切换到 Pro 模式，使用模型：${newModel}`
-        : `已切换到标准模式，使用模型：${newModel}`,
-      'success'
-    );
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -33,31 +18,8 @@ export const SettingsPanel: React.FC = () => {
 
       <div className="space-y-8 flex-1">
 
-        {/* Pro Mode Toggle */}
-        <section>
-          <label className="flex items-center justify-between cursor-pointer group">
-            <div className="flex items-center gap-2">
-                <Zap className={`h-4 w-4 ${settings.isPro ? 'text-amber-500' : 'text-gray-400'}`} />
-                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300">Pro 模式</span>
-            </div>
-            <div className="relative">
-              <input
-                type="checkbox"
-                checked={settings.isPro}
-                onChange={(e) => handleProModeToggle((e.target as HTMLInputElement).checked)}
-                className="sr-only peer"
-              />
-              <div className="h-6 w-11 rounded-full bg-gray-200 dark:bg-gray-800 peer-focus:ring-2 peer-focus:ring-blue-500/50 peer-checked:bg-blue-600 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full"></div>
-            </div>
-          </label>
-          <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
-            启用高级功能，包括高分辨率图像、Google 搜索定位和思考过程。
-          </p>
-        </section>
-
-        {/* Pro Features Group */}
-        {settings.isPro && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
+        {/* Image Settings Group */}
+        <div className="space-y-8">
             {/* Resolution */}
             <section className="mb-4">
               <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">图像分辨率</label>
@@ -156,7 +118,6 @@ export const SettingsPanel: React.FC = () => {
               </label>
             </section>
           </div>
-        )}
 
         {/* Streaming */}
         <section>
@@ -208,6 +169,7 @@ export const SettingsPanel: React.FC = () => {
         {/* Info */}
         <div className="mt-1 pb-4 text-center text-[10px] text-gray-400 dark:text-gray-600 space-y-1">
            <p className="truncate px-4">接口地址: {settings.customEndpoint || 'https://generativelanguage.googleapis.com'}</p>
+           <p className="truncate px-4">模型: {settings.modelName || 'gemini-3-pro-image-preview'}</p>
         </div>
       </div>
     </div>

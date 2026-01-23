@@ -75,7 +75,6 @@ export const useAppStore = create<AppState>()(
         customEndpoint: 'https://generativelanguage.googleapis.com',
         modelName: 'gemini-3-pro-image-preview',
         theme: 'system',
-        isPro: true,
       },
       messages: [],
       imageHistory: [], // 初始化图片历史记录
@@ -288,7 +287,8 @@ export const useAppStore = create<AppState>()(
             apiKey: config.apiKey,
             settings: {
               ...get().settings,
-              customEndpoint: config.endpoint
+              customEndpoint: config.endpoint,
+              modelName: config.model || 'gemini-3-pro-image-preview'
             }
           });
         }
