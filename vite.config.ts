@@ -2,7 +2,6 @@ import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import preact from '@preact/preset-vite';
 import tailwindcss from '@tailwindcss/vite';
-import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
@@ -14,38 +13,6 @@ export default defineConfig(({ mode }) => {
       plugins: [
         preact(),
         tailwindcss(),
-        VitePWA({
-          registerType: 'autoUpdate',
-          includeAssets: ['logo.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
-          devOptions: {
-            enabled: true
-          },
-          // 禁用 Google Analytics
-          workbox: {
-            offlineGoogleAnalytics: false
-          },
-          manifest: {
-            name: 'UndyDraw',
-            short_name: 'UndyDraw',
-            description: 'Gemini 3 Pro 客户端',
-            theme_color: '#ffffff',
-            background_color: '#ffffff',
-            display: 'standalone',
-            orientation: 'portrait',
-            icons: [
-              {
-                src: 'pwa-192x192.png',
-                sizes: '192x192',
-                type: 'image/png'
-              },
-              {
-                src: 'pwa-512x512.png',
-                sizes: '512x512',
-                type: 'image/png'
-              }
-            ]
-          }
-        }),
       ],
       define: {
       },

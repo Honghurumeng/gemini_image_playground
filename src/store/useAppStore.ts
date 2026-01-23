@@ -33,11 +33,9 @@ interface AppState {
   isLoading: boolean;
   isSettingsOpen: boolean;
   inputText: string; // Global input text state
-  installPrompt: any | null; // PWA Install Prompt Event
   apiConfigs: ApiConfig[]; // API配置列表
   isApiConfigDialogOpen: boolean; // API配置对话框状态
 
-  setInstallPrompt: (prompt: any) => void;
   setApiKey: (key: string) => void;
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   addMessage: (message: ChatMessage) => void;
@@ -81,11 +79,9 @@ export const useAppStore = create<AppState>()(
       isLoading: false,
       isSettingsOpen: window.innerWidth > 640, // Open by default only on desktop (sm breakpoint)
       inputText: '',
-      installPrompt: null,
       apiConfigs: [], // 初始化API配置列表
       isApiConfigDialogOpen: false, // 初始化对话框状态
 
-      setInstallPrompt: (prompt) => set({ installPrompt: prompt }),
       setApiKey: (key) => set({ apiKey: key }),
       
       updateSettings: (newSettings) => 
