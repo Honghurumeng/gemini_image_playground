@@ -1,12 +1,12 @@
 # gemini_image_playground
 
-这是一个基于 React 的现代化纯前端应用，专为与 Google 的 **Gemini 3 Pro** 模型交互而设计。它提供了一个流畅的聊天界面，支持多模态输入，并在等待 AI 思考时提供趣味性的互动体验。
+这是一个基于 Preact 的现代化纯前端应用，专为与 Google 的 **Gemini 3 Pro Image** 模型交互而设计。它提供了一个流畅的聊天界面，支持多模态输入，并实时显示 AI 的思考状态。
 
 ## ✨ 主要特性
 
 ### 🎨 核心功能
 
-- **纯前端架构**：基于 React 19 + Vite 6 构建，无需后端服务器，直接在浏览器中运行
+- **纯前端架构**：基于 Preact 10 + Vite 7 构建，无需后端服务器，直接在浏览器中运行
 - **Gemini 3 Pro 支持**：默认配置为 `gemini-3-pro-image-preview` 模型，支持最新的 AI 能力
 - **多模态交互**：
   - 支持文本对话
@@ -41,12 +41,12 @@
   - 一键导出为 PNG 并自动作为参考图片加入当前会话（计入 14 张上限）
 
 
-### 🎮 等待街机模式
+### 💭 思考状态显示
 
-- **Waiting Arcade Mode**：
-  - 在模型进行长思维链思考时，自动激活"街机模式"
-  - **内置小游戏**：包含 **贪吃蛇 (Snake)**、**恐龙跑酷 (Dino)**、**2048** 和 **生命游戏 (Game of Life)**
-  - **自适应体验**：游戏根据当前的**主题（明/暗）**和**设备类型（桌面/移动）**自动切换，打发等待时间
+- **思考指示器**：
+  - 在模型进行长思维链思考时，显示实时思考状态
+  - 展示思考阶段和耗时统计
+  - 提供视觉反馈，让用户了解AI正在处理
 
 ### 🧠 思维链可视化
 
@@ -76,8 +76,8 @@
 
 ## 🛠️ 技术栈
 
-- **核心框架**: [React 19](https://react.dev/)
-- **构建工具**: [Vite 6](https://vitejs.dev/)
+- **核心框架**: [Preact 10](https://preactjs.com/) (通过 preact/compat 提供 React API 兼容)
+- **构建工具**: [Vite 7](https://vitejs.dev/)
 - **语言**: [TypeScript](https://www.typescriptlang.org/)
 - **样式方案**: [Tailwind CSS 4](https://tailwindcss.com/)
 - **状态管理**: [Zustand](https://github.com/pmndrs/zustand)
@@ -157,30 +157,30 @@ http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
 ## 📂 项目结构
 
 ```
-├── components/               # UI 组件
-│   ├── games/                   # 街机模式小游戏 (Snake, Dino, 2048, Life)
-│   ├── ui/                      # 通用 UI 组件 (Toast, Dialog)
-│   ├── ApiKeyModal.tsx          # API Key 输入弹窗
-│   ├── ChatInterface.tsx        # 主聊天区域
-│   ├── InputArea.tsx            # 输入框与文件上传 (支持拖拽 & 画板)
-│   ├── MessageBubble.tsx        # 消息气泡与 Markdown 渲染 (支持下载)
-│   ├── SettingsPanel.tsx        # 设置面板
-│   ├── ImageHistoryPanel.tsx    # 图片历史记录面板 ✨
-│   ├── DrawingBoard.tsx         # 画板组件（基于 Excalidraw）✨
-│   └── ThinkingIndicator.tsx    # 思维链指示器与游戏入口
-├── services/                 # 服务层
-│   └── geminiService.ts         # Google GenAI SDK 集成
-├── store/                    # 状态管理
-│   ├── useAppStore.ts           # 应用核心状态 (含图片历史)
-│   └── useUiStore.ts            # UI 交互状态
-├── utils/                    # 工具函数
-│   ├── messageUtils.ts          # 消息处理工具
-│   └── soundUtils.ts            # 音效处理工具
-├── types.ts                  # TypeScript 类型定义
-├── App.tsx                   # 根组件
-├── index.tsx                 # 入口文件
-└── CLAUDE.md                 # 项目开发文档 ✨
-```
+ ├── components/               # UI 组件
+ │   ├── ui/                      # 通用 UI 组件 (Toast, Dialog)
+ │   ├── ApiKeyModal.tsx          # API Key 输入弹窗
+ │   ├── ChatInterface.tsx        # 主聊天区域
+ │   ├── InputArea.tsx            # 输入框与文件上传 (支持拖拽 & 画板)
+ │   ├── MessageBubble.tsx        # 消息气泡与 Markdown 渲染 (支持下载)
+ │   ├── SettingsPanel.tsx        # 设置面板
+ │   ├── ImageHistoryPanel.tsx    # 图片历史记录面板 ✨
+ │   ├── DrawingBoard.tsx         # 画板组件（基于 Excalidraw）✨
+ │   └── ThinkingIndicator.tsx    # 思考状态指示器
+ ├── services/                 # 服务层
+ │   └── geminiService.ts         # Google GenAI SDK 集成
+ ├── store/                    # 状态管理
+ │   ├── useAppStore.ts           # 应用核心状态 (含图片历史)
+ │   └── useUiStore.ts            # UI 交互状态
+ ├── utils/                    # 工具函数
+ │   ├── imageUtils.ts            # 图片处理工具
+ │   ├── lazyLoadUtils.ts         # 懒加载工具
+ │   └── messageUtils.ts          # 消息处理工具
+ ├── types.ts                  # TypeScript 类型定义
+ ├── App.tsx                   # 根组件
+ ├── index.tsx                 # 入口文件
+ └── CLAUDE.md                 # 项目开发文档 ✨
+ ```
 
 ## 🎯 功能对比
 
