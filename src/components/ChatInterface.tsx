@@ -4,6 +4,7 @@ import { InputArea } from './InputArea';
 import { ErrorBoundary } from './ErrorBoundary';
 import { streamGeminiResponse, generateContent } from '../services/geminiService';
 import { convertMessagesToHistory } from '../utils/messageUtils';
+import { extractImagesFromParts } from '../utils/extractImagesFromParts';
 import { ChatMessage, Attachment, Part } from '../types';
 import { Sparkles } from 'lucide-react';
 import { lazyWithRetry } from '../utils/lazyLoadUtils';
@@ -149,19 +150,22 @@ export const ChatInterface: React.FC = () => {
       // 收集生成的图片到历史记录
       const finalMessage = useAppStore.getState().messages.slice(-1)[0];
       if (finalMessage && finalMessage.role === 'model') {
-        const imageParts = finalMessage.parts.filter(p => p.inlineData && !p.thought);
-        imageParts.forEach(part => {
-          if (part.inlineData) {
-            addImageToHistory({
-              id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-              mimeType: part.inlineData.mimeType,
-              base64Data: part.inlineData.data,
-              prompt: text || '图片生成',
-              timestamp: Date.now(),
-              modelName: settings.modelName,
-            });
-          }
-        });
+        const extractedImages = extractImagesFromParts(finalMessage.parts);
+        if (extractedImages.length > 0) {
+          const baseTs = Date.now();
+          await Promise.all(
+            extractedImages.map((img, idx) =>
+              addImageToHistory({
+                id: `img-${baseTs}-${idx}-${Math.random().toString(36).substr(2, 9)}`,
+                mimeType: img.mimeType,
+                base64Data: img.base64Data,
+                prompt: text || '图片生成',
+                timestamp: baseTs + idx,
+                modelName: settings.modelName,
+              })
+            )
+          );
+        }
       }
 
     } catch (error: any) {
