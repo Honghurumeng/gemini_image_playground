@@ -1,87 +1,84 @@
-# gemini_image_playground
+# Nano Banana Pro 在线客户端
 
-这是一个基于 Preact 的现代化纯前端应用，专为与 Google 的 **Gemini 3 Pro Image** 模型交互而设计。它提供了一个流畅的聊天界面，支持多模态输入，并实时显示 AI 的思考状态。
+> 原仓库名 `gemini_image_playground` / 包名 `undydraw`
+
+这是一个基于 **Preact** 的现代化纯前端应用，专为与 Google 的 **Gemini 3 Pro Image** 模型交互而设计。它提供了一个流畅的聊天界面，支持多模态输入，并实时显示 AI 的思考状态。页面标题为 `Nano Banana Pro 在线客户端`，100% 在浏览器中运行，无需后端。
 
 ## ✨ 主要特性
 
 ### 🎨 核心功能
 
-- **纯前端架构**：基于 Preact 10 + Vite 7 构建，无需后端服务器，直接在浏览器中运行
-- **Gemini 3 Pro 支持**：默认配置为 `gemini-3-pro-image-preview` 模型，支持最新的 AI 能力
+- **纯前端架构**：基于 Preact 10 + Vite 7 构建，无需后端服务器，直接在浏览器中运行（通过 `preact/compat` 兼容 React API）
+- **Gemini 3 Pro 支持**：默认配置为 `gemini-3-pro-image-preview`，默认接口 `https://generativelanguage.googleapis.com`，支持自定义 Endpoint / 模型名
 - **多模态交互**：
   - 支持文本对话
-  - 支持图片上传与分析（最多支持 14 张参考图片）
+  - 支持图片上传与分析（最多 14 张参考图片，超限自动截断）
   - 支持在页面任意位置粘贴剪贴板图片，自动加入参考图列表
-  - **✨ 拖拽上传**：支持将图片直接拖拽到输入框上传，无需点击按钮
-  - **🖌️ 内置画板（Excalidraw）**：支持在应用内手绘草图、流程图等，一键导出为图片并作为参考图参与生成
+  - **✨ 拖拽上传**：将图片直接拖拽到输入框上传，拖拽时蓝色高亮提示，支持多张
+  - **🖌️ 内置画板（Excalidraw）**：应用内手绘草图、流程图等，一键导出 PNG 并作为参考图参与生成（计入 14 张上限），跟随浅色/深色主题
+  - **✨ `/t` 快速选词**：输入框输入 `/t` 唤起 `PromptQuickPicker` 快速检索提示词库
 
-### 🖼️ 图片功能 (新增)
+### 🖼️ 图片功能
 
-- **📥 拖拽上传**：
-  - 将图片拖拽到输入框区域即可上传
-  - 拖拽时显示蓝色高亮边框提示
-  - 支持同时拖拽多张图片
-
-- **💾 一键下载**：
-  - 生成的图片悬停显示下载按钮
-  - 支持思维链中的图片下载
-  - 自动命名：`gemini-image-{时间戳}.{扩展名}`
-
+- **📥 上传**：点击（📷）、拖拽、全局粘贴、画板导出四种来源
+- **💾 一键下载**：生成图片/思维链图片悬停显示下载按钮，点击查看大图，自动命名 `gemini-image-{时间戳}.{扩展名}`
 - **📚 图片历史记录**：
-  - 自动收集所有生成的图片（最多保留 100 张）
-  - 2x2 网格预览布局
-  - 点击图片全屏查看 + 提示词详情
-  - 支持单张下载或批量管理
-  - 数据持久化保存到浏览器本地
+  - 自动收集所有生成的图片（最多保留 100 张，含 `inlineData` 和 Markdown 内 `dataURL` 去重提取）
+  - 缩略图（200px）存 Zustand + 原图存 IndexedDB（`idb-keyval`），大图预览时懒加载原图，自动迁移/清理坏数据
+  - 2x2 网格预览，按提示词搜索过滤
+  - 点击全屏查看 + 提示词详情，支持复制提示词、一键复用提示词到输入框、单张下载/删除、左右切换、一键清空
+  - 数据持久化（`gemini-pro-storage`）
 
-- **🖌️ 画板绘制（基于 Excalidraw）**：
-  - 点击输入框左侧的调色板按钮即可打开全屏画板
-  - 提供矩形、椭圆、箭头、文本、自由绘制、图像等丰富工具
-  - 支持暗色 / 亮色主题自动切换
-  - 一键导出为 PNG 并自动作为参考图片加入当前会话（计入 14 张上限）
+### 📝 提示词库
 
+- 内置 `public/prompts.json`（当前 329 条），分类：`NSFW / 学习 / 工作 / 有趣 / 游戏 / 生活`
+- 字段：`title / preview / prompt / author / link / mode(edit|generate) / category`
+- 顶部 ✨ 按钮打开 `PromptLibraryPanel`：分类筛选、一键填入输入框；输入框 `/t` 唤起快捷选择器（支持键盘上下选择）
+- `services/promptService.ts`：24 小时 `localStorage` 缓存，失败回退过期缓存
+- `scripts/merge_prompts.py`：合并去重脚本，按 `prompt` 精确去重并补全 `preview/link` 空字段
 
-### 💭 思考状态显示
+### 🎨 风格保持（StylePanel）
 
-- **思考指示器**：
-  - 在模型进行长思维链思考时，显示实时思考状态
-  - 展示思考阶段和耗时统计
-  - 提供视觉反馈，让用户了解AI正在处理
+- 顶部调色板按钮打开：`画风（artStyle）+ 角色列表（name/description/enabled 开关，支持新增/编辑/删除）+ 画面内容描述`
+- 一键拼装为 `画风: ...\n角色: ...\n画面内容: ...` 追加到输入框
+- 自动写入历史（最多 50 条，持久化到 `ui-storage`），支持重新应用/删除
 
-### 🧠 思维链可视化
+### 💭 思考状态与思维链
 
-- 通过可折叠的 UI 展示模型的思维过程（Thinking Process）
-- 支持查看详细步骤
-- 显示思考耗时
+- **思考指示器**：长思维链时实时显示阶段轮播（思考中/分析上下文/连接思路/生成回复/完善细节）+ 耗时统计
+- **思维链可视化**：可折叠 UI 展示 `thought=true` 的 parts，显示思考耗时；请求历史时自动过滤 `thought` parts，避免回传
+
+### 💬 对话管理
+
+- 流式（`generateContentStream` 逐 token 累加渲染）/ 非流式可切换；生成中可一键停止（`AbortController`）
+- 单条消息删除、从某条重新生成（`sliceMessages` 截断后重发）
+- 自动滚动到底部，`ErrorBoundary` 兜底渲染错误
+- `ReactMarkdown + remark-gfm`：代码块、表格、列表、引用，自动解析 Markdown 内嵌 `data:image` 并提供下载
 
 ### 🎨 现代化 UI/UX
 
-- **流畅交互**：实时流式响应，配合打字机效果
-- **交互反馈**：集成 Toast 通知、全局对话框及操作音效
-- **主题切换**：支持明亮（Light）、暗黑（Dark）及跟随系统主题
-- **响应式设计**：完美适配桌面端和移动端
-
-### 📝 Markdown 渲染
-
-- 完美支持代码块高亮
-- 支持表格、列表、引用等富文本格式
-- 支持 GFM (GitHub Flavored Markdown)
+- **流畅交互**：流式打字机效果，组件 `lazyWithRetry（3次重试）+ requestIdleCallback 预加载`，开屏 Splash 淡出
+- **交互反馈**：`ToastContainer`（3s 自动消失）+ `GlobalDialog`（URL 配置确认、2K/4K 流式警告等）
+- **主题切换**：Light / Dark / System 跟随，实时监听系统变化，同步 `meta theme-color`
+- **响应式**：桌面端设置侧边栏常驻（`sm:w-80`），移动端全屏抽屉 + 背景点击关闭；移动端回车换行、桌面端回车发送
 
 ### ⚙️ 高度可配置
 
-- **API 设置**：支持自定义 API Endpoint 和模型名称
-- **图像参数**：可调整生成图像的分辨率（1K/2K/4K）和长宽比
-- **Grounding**：集成 Google Search Grounding 开关，支持联网搜索
-- **安全隐私**：API Key 安全存储在本地浏览器中（LocalStorage），刷新页面不丢失，方便持续使用。随时可在设置中清除
+- **API 设置**：首次弹窗输入 Key（支持展开高级设置直接填 Endpoint/模型）；设置面板底部显示当前接口/模型；支持 `ApiConfigDialog` 保存多套配置（名称/Key/接口/模型），一键应用/编辑/删除，持久化
+- **图像参数**：分辨率 `1K / 2K / 4K` + 长宽比 `Auto / 1:1 / 3:4 / 4:3 / 9:16 / 16:9`（带图形预览）。注意：切到 2K/4K 会自动关闭流式，手动开启流式会弹窗警告可能内容不完整
+- **Grounding**：Google Search 开关，联网获取实时信息
+- **思考/流式开关**：`enableThinking（includeThoughts）/ streamResponse` 独立控制
+- **安全隐私**：Key、设置、多 API 配置、图片缩略图、风格设置均持久化到浏览器 IndexedDB（`idb-keyval`），刷新不丢失；图片原图单独 `image_data_{id}` 存储，不占 State
 
 ## 🛠️ 技术栈
 
-- **核心框架**: [Preact 10](https://preactjs.com/) (通过 preact/compat 提供 React API 兼容)
-- **构建工具**: [Vite 7](https://vitejs.dev/)
+- **核心框架**: [Preact 10](https://preactjs.com/)（`preact/compat` 别名 `react/react-dom`）
+- **构建工具**: [Vite 7](https://vitejs.dev/)（`@preact/preset-vite` + `@tailwindcss/vite`，`google-genai/markdown-libs` 分包）
 - **语言**: [TypeScript](https://www.typescriptlang.org/)
 - **样式方案**: [Tailwind CSS 4](https://tailwindcss.com/)
-- **状态管理**: [Zustand](https://github.com/pmndrs/zustand)
-- **AI SDK**: [Google GenAI SDK](https://www.npmjs.com/package/@google/genai)
+- **状态管理**: [Zustand](https://github.com/pmndrs/zustand)（`persist + createJSONStorage`）
+- **本地存储**: `idb-keyval`（IndexedDB）
+- **AI SDK**: [Google GenAI SDK](https://www.npmjs.com/package/@google/genai)（`@google/genai@^1.30.0`，动态 `import`）
 - **图标库**: [Lucide React](https://lucide.dev/)
 - **Markdown**: React Markdown + Remark GFM
 - **画板组件**: [Excalidraw](https://github.com/excalidraw/excalidraw)（`@excalidraw/excalidraw`）
@@ -90,115 +87,150 @@
 
 ### 前置要求
 
-- Node.js (建议 v18 或更高版本)
-- Google Gemini API Key ([在此获取](https://aistudio.google.com/app/apikey))
+- Node.js `>=18`（`package.json engines` 约束）
+- Google Gemini API Key（[在此获取](https://aistudio.google.com/app/apikey))
+
+```bash
+npm install
+npm run dev      # 默认 http://localhost:3003/（见 vite.config.ts server.port）
+npm run build    # vite build
+npm run preview  # vite preview
+```
 
 ## ⚙️ 使用说明
 
 ### 1. 配置 API Key
 
-首次进入应用时，会弹窗提示输入 **Gemini API Key**。
+首次进入无 Key 时弹窗提示输入 **Gemini API Key**，可展开高级设置同时填写接口地址和模型名。
 
-> 注意：API Key 将安全存储在您的浏览器本地（LocalStorage），以便下次访问时自动加载。您可以在设置面板中随时将其清除。
+> 注意：Key 持久化在浏览器 IndexedDB（`gemini-pro-storage`）中，下次自动加载。可在设置面板打开 `API 配置管理` 保存/切换多套配置。
 
 ### 2. URL 参数配置
 
-支持通过 URL 参数快速预设配置，方便分享或特定场景使用：
+支持通过 URL 参数预设，检测到与当前不同时会弹窗二次确认，应用后自动清理 URL：
 
 - `apikey`: 预填 API Key
-- `endpoint`: 自定义 API 端点 (Base URL)
+- `endpoint`: 自定义 API 端点（Base URL）
+- `model`: 自定义模型名
 
 **示例：**
 ```
-http://localhost:3000/?endpoint=https://my-proxy.com&model=gemini-2.0-flash
+http://localhost:3003/?apikey=AIza...&endpoint=https://my-proxy.com&model=gemini-3-pro-image-preview
 ```
 
-### 3. 图片上传方式 / 来源
+### 3. 输入与图片来源
 
-支持三种图片来源：
+- **点击上传**：输入框左侧 📷 图标，最多 14 张
+- **拖拽上传**：拖到输入框区域，蓝色高亮后松开
+- **粘贴上传**：页面任意位置 `Ctrl/Cmd+V` 剪贴板图片
+- **画板绘制**：输入框左侧 🎨 图标打开全屏 Excalidraw，右上保存为 PNG 自动加入附件
+- **快捷提示词**：输入 `/t` 唤起快速选择器，回车填入
+- 发送中按钮变为停止按钮，可中断流式请求；`Enter` 发送（移动端除外），`Shift+Enter` 换行
 
-#### 方式一：点击上传
-- 点击输入框左侧的 📷 图标
-- 选择图片文件（最多 14 张）
+### 4. 提示词库
 
-#### 方式二：拖拽上传 ✨ (新增)
-- 直接将图片拖拽到输入框区域
-- 看到蓝色高亮边框后松开鼠标
-- 图片自动上传并显示预览
+点击顶部 ✨ 打开：分类切换 + 一键填入输入框。数据源为本地 `/prompts.json`，带 24h 缓存。
 
-#### 方式三：画板绘制（Excalidraw） ✨
-- 点击输入框左侧的 🎨 调色板图标
-- 将会打开全屏 Excalidraw 画板
-- 使用上方工具栏绘制草图 / 流程图 / 标注等内容
-- 点击右上角的「保存为图片」按钮
-  - 画布会导出为 PNG 图片
-  - 自动作为一张新的参考图片添加到当前会话的附件列表中
+合并新词库：
+```bash
+python3 scripts/merge_prompts.py <in1.json> <in2.json> <out.json>
+# 按 prompt 去重，自动补全 preview/link 空字段
+```
 
-### 4. 图片历史记录 ✨ (新增)
+### 5. 风格保持
 
-点击顶部导航栏的 **🖼️ 图片图标**（带蓝色脉冲徽章）打开历史记录面板：
+点击顶部调色板按钮：填写画风、增删/启用角色、填写画面内容 → 应用到输入框。历史记录可一键回填面板。
 
-- **查看历史**：2x2 网格显示所有生成的图片
-- **预览大图**：点击图片查看全屏预览 + 提示词详情
-- **下载图片**：悬停显示下载按钮，或在预览模式下一键下载
-- **清空历史**：点击顶部垃圾桶图标清空所有记录
+### 6. 图片历史记录
 
-### 5. 高级设置
+点击顶部 🖼️（有图时蓝色脉冲徽章）：
 
-点击右上角的设置图标（⚙️）打开设置面板，可以调整：
+- 网格预览 + 提示词搜索
+- 点击全屏：复制提示词 / 复用到输入框 / 下载原图 / 删除
+- 顶部垃圾桶清空全部（同步清理 IndexedDB 原图）
 
-- **主题外观**：切换深色/浅色模式
-- **图像生成设置**：调整分辨率和比例
-- **Google Search Grounding**：开启后允许模型通过 Google 搜索获取实时信息
-- **思维链开关**：显示/隐藏模型的思考过程
-- **流式响应**：逐 token 流式传输或一次性响应
-- **数据管理**：清除对话历史或重置 API Key
+### 7. 高级设置
+
+点击右上角 ⚙️：
+
+- 图像分辨率、长宽比、Google 搜索定位、显示思考过程、流式响应
+- `编辑 API 配置`：多配置增删改查与应用
+- 底部显示当前接口地址与模型
+- 顶部栏：新对话（清空消息）、风格、历史、提示词库、主题切换、GitHub、设置
+
+消息气泡支持：折叠思考过程、图片下载/放大、删除消息、从此重新生成。
 
 ## 📂 项目结构
 
 ```
- ├── components/               # UI 组件
- │   ├── ui/                      # 通用 UI 组件 (Toast, Dialog)
- │   ├── ApiKeyModal.tsx          # API Key 输入弹窗
- │   ├── ChatInterface.tsx        # 主聊天区域
- │   ├── InputArea.tsx            # 输入框与文件上传 (支持拖拽 & 画板)
- │   ├── MessageBubble.tsx        # 消息气泡与 Markdown 渲染 (支持下载)
- │   ├── SettingsPanel.tsx        # 设置面板
- │   ├── ImageHistoryPanel.tsx    # 图片历史记录面板 ✨
- │   ├── DrawingBoard.tsx         # 画板组件（基于 Excalidraw）✨
- │   └── ThinkingIndicator.tsx    # 思考状态指示器
- ├── services/                 # 服务层
- │   └── geminiService.ts         # Google GenAI SDK 集成
- ├── store/                    # 状态管理
- │   ├── useAppStore.ts           # 应用核心状态 (含图片历史)
- │   └── useUiStore.ts            # UI 交互状态
- ├── utils/                    # 工具函数
- │   ├── imageUtils.ts            # 图片处理工具
- │   ├── lazyLoadUtils.ts         # 懒加载工具
- │   └── messageUtils.ts          # 消息处理工具
- ├── types.ts                  # TypeScript 类型定义
- ├── App.tsx                   # 根组件
- ├── index.tsx                 # 入口文件
- └── CLAUDE.md                 # 项目开发文档 ✨
- ```
+src/
+ ├── components/
+ │   ├── ui/
+ │   │   ├── ToastContainer.tsx     # Toast 通知
+ │   │   └── GlobalDialog.tsx       # 全局确认/提示框
+ │   ├── ApiKeyModal.tsx            # 首次 API Key 输入（含高级设置）
+ │   ├── ApiConfigDialog.tsx        # 多套 API 配置管理
+ │   ├── ChatInterface.tsx          # 主聊天区（发送/停止/重生成/滚动）
+ │   ├── InputArea.tsx              # 输入框（点击/拖拽/粘贴/画板//t）
+ │   ├── PromptQuickPicker.tsx      # /t 快捷提示词选择器
+ │   ├── PromptLibraryPanel.tsx     # 提示词库面板
+ │   ├── StylePanel.tsx             # 风格保持面板
+ │   ├── MessageBubble.tsx          # 消息气泡（Markdown/图片/思考折叠）
+ │   ├── ThinkingIndicator.tsx      # 思考中指示器
+ │   ├── ImageHistoryPanel.tsx      # 图片历史（搜索/预览/复用/下载）
+ │   ├── DrawingBoard.tsx           # Excalidraw 画板封装
+ │   └── ErrorBoundary.tsx          # 渲染错误边界
+ ├── services/
+ │   ├── geminiService.ts           # GenAI 流式/非流式封装、错误中文映射
+ │   └── promptService.ts           # prompts.json 加载 + 分类 + 缓存
+ ├── store/
+ │   ├── useAppStore.ts             # Key/设置/消息/图片历史/API配置（IndexedDB持久化）
+ │   └── useUiStore.ts              # Toast/Dialog/风格设置/提示词历史（IndexedDB持久化）
+ ├── utils/
+ │   ├── imageUtils.ts              # base64/Blob/下载/缩略图
+ │   ├── extractImagesFromParts.ts  # 从 inlineData + Markdown dataURL 提取图片
+ │   ├── messageUtils.ts            # ChatMessage -> GenAI Content（含 thought 过滤）
+ │   └── lazyLoadUtils.ts           # lazyWithRetry + 空闲预加载
+ ├── shims/                         # 类型/兼容垫片
+ ├── types.ts                       # AppSettings/Content/ChatMessage/Attachment/ImageHistoryItem/PromptItem
+ ├── App.tsx                        # 根组件（主题/URL参数/顶栏/侧边栏/弹窗挂载）
+ ├── index.tsx                      # 入口（挂载 + Splash 移除）
+ └── index.css                      # Tailwind + dark variant + 动画/滚动条
+public/
+ ├── logo.svg
+ ├── prompts.json                   # 329 条提示词库
+ └── 4*4.png                        # 示例预览图
+scripts/
+ └── merge_prompts.py               # 提示词合并去重
+index.html                          # 标题 Nano Banana Pro 在线客户端 + Splash
+vite.config.ts                      # port 3003 + preact/tailwind + react别名 + 分包
+package.json                        # undydraw@0.1.0
+```
 
 ## 🎯 功能对比
 
 | 功能 | 原版 | 当前版本 |
 |------|------|----------|
-| 图片上传 | ✅ 点击上传 | ✅ 点击 + 拖拽上传 |
-| 图片下载 | ❌ 需右键另存为 | ✅ 悬停一键下载 |
-| 图片历史 | ❌ 无 | ✅ 自动收集 + 预览 |
-| 画板绘图 | ❌ 无 | ✅ 内置 Excalidraw 画板，全屏绘制 + 一键导出 |
+| 图片上传 | ✅ 点击上传 | ✅ 点击 + 拖拽 + 粘贴 + 画板 |
+| 图片下载 | ❌ 需右键另存为 | ✅ 悬停/全屏一键下载 |
+| 图片历史 | ❌ 无 | ✅ 100张 + 搜索/复制/复用 + IndexedDB |
+| 画板绘图 | ❌ 无 | ✅ 内置 Excalidraw 全屏绘制 + 一键导出 |
+| 提示词库 | ❌ 无 | ✅ 329条本地库 + /t 快捷唤起 |
+| 风格保持 | ❌ 无 | ✅ 画风+角色+内容 + 50条历史 |
+| 多API配置 | ❌ 无 | ✅ 保存/切换多套 Key/接口/模型 |
+| 对话管理 | 基础 | ✅ 删除/重生成/停止/思考折叠 |
 
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
+提示词贡献：准备两个 JSON 数组文件后用 `scripts/merge_prompts.py` 合并去重再提交 `public/prompts.json`。
+
 ## 📄 License
 
-AGPL-3.0
+AGPL-3.0-only（见 `LICENSE`，`package.json license` 一致）
 
 ## 🙏 致谢
 
 - 原项目：[faithleysath/UndyDraw](https://github.com/faithleysath/UndyDraw)
+- 本仓库：[Honghurumeng/gemini_image_playground](https://github.com/Honghurumeng/gemini_image_playground)
