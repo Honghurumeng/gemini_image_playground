@@ -3,6 +3,7 @@ import { useAppStore } from '../store/useAppStore';
 import { InputArea } from './InputArea';
 import { ErrorBoundary } from './ErrorBoundary';
 import { streamGeminiResponse, generateContent } from '../services/geminiService';
+import { isOpenAIModel, streamOpenAIResponse, generateOpenAIImage } from '../services/openaiImageService';
 import { convertMessagesToHistory } from '../utils/messageUtils';
 import { extractImagesFromParts } from '../utils/extractImagesFromParts';
 import { ChatMessage, Attachment, Part } from '../types';
@@ -94,7 +95,9 @@ export const ChatInterface: React.FC = () => {
       let thinkingDuration = 0;
       let isThinking = false;
 
-      if (settings.streamResponse) {
+      const useOpenAI = isOpenAIModel(settings.modelName);
+      // OpenAI 兼容通道无真流式/思考过程：stream 模式下也一次性返回
+      if (settings.streamResponse && !useOpenAI) {
           const stream = streamGeminiResponse(
             apiKey,
             history, 
@@ -123,6 +126,31 @@ export const ChatInterface: React.FC = () => {
           if (isThinking) {
               thinkingDuration = (Date.now() - startTime) / 1000;
               updateLastMessage(useAppStore.getState().messages.slice(-1)[0].parts, false, thinkingDuration);
+          }
+      } else if (useOpenAI) {
+          // OpenAI 通道：流式开关打开时也走一次性生成（兼容 yield 一次）
+          if (settings.streamResponse) {
+            const stream = streamOpenAIResponse(
+              apiKey,
+              history,
+              text,
+              imagesPayload,
+              settings,
+              abortControllerRef.current.signal
+            );
+            for await (const chunk of stream) {
+              updateLastMessage(chunk.modelParts, false, undefined);
+            }
+          } else {
+            const result = await generateOpenAIImage(
+              apiKey,
+              history,
+              text,
+              imagesPayload,
+              settings,
+              abortControllerRef.current.signal
+            );
+            updateLastMessage(result.modelParts, false, undefined);
           }
       } else {
           const result = await generateContent(
@@ -253,7 +281,7 @@ export const ChatInterface: React.FC = () => {
           <div className="flex h-full flex-col items-center justify-center text-center opacity-40 select-none">
             <div className="mb-6 rounded-3xl bg-gray-50 dark:bg-gray-900 p-8 shadow-2xl ring-1 ring-gray-200 dark:ring-gray-800 transition-colors duration-200">
                <Sparkles className="h-16 w-16 text-blue-500 mb-4 mx-auto animate-pulse-fast" />
-               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Gemini 3 Pro</h3>
+               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{isOpenAIModel(settings.modelName) ? (settings.modelName || 'GPT Image') : 'Gemini 3 Pro'}</h3>
                <p className="max-w-xs text-sm text-gray-500 dark:text-gray-400">
                  开始输入以创建图像，通过对话编辑它们，或询问复杂的问题。
                </p>

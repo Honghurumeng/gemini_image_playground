@@ -2,14 +2,14 @@
 
 > 原仓库名 `gemini_image_playground` / 包名 `undydraw`
 
-这是一个基于 **Preact** 的现代化纯前端应用，专为与 Google 的 **Gemini 3 Pro Image** 模型交互而设计。它提供了一个流畅的聊天界面，支持多模态输入，并实时显示 AI 的思考状态。页面标题为 `Nano Banana Pro 在线客户端`，100% 在浏览器中运行，无需后端。
+这是一个基于 **Preact** 的现代化纯前端应用，支持 **Gemini 3 Pro Image** 与 **OpenAI 兼容图片通道（gpt-image-2.5-flare / gpt-image-2.5-sunburst）** 双通道。它提供了一个流畅的聊天界面，支持多模态输入，并实时显示 AI 的思考状态（Gemini 通道）。页面标题为 `Nano Banana Pro 在线客户端`，100% 在浏览器中运行，无需后端。
 
 ## ✨ 主要特性
 
 ### 🎨 核心功能
 
 - **纯前端架构**：基于 Preact 10 + Vite 7 构建，无需后端服务器，直接在浏览器中运行（通过 `preact/compat` 兼容 React API）
-- **Gemini 3 Pro 支持**：默认配置为 `gemini-3-pro-image-preview`，默认接口 `https://generativelanguage.googleapis.com`，支持自定义 Endpoint / 模型名
+- **双通道支持**：默认 `gemini-3-pro-image-preview`（`https://generativelanguage.googleapis.com`）；新增 OpenAI 兼容通道 `gpt-image-2.5-flare / gpt-image-2.5-sunburst`（默认接口 `https://ai98pro.xyz/v1`，兼容 `openai/` 前缀）。模型/接口统一在 `API 配置管理` 中维护，设置面板仅切换已存方案并自动识别通道类型
 - **多模态交互**：
   - 支持文本对话
   - 支持图片上传与分析（最多 14 张参考图片，超限自动截断）
@@ -43,7 +43,15 @@
 - 一键拼装为 `画风: ...\n角色: ...\n画面内容: ...` 追加到输入框
 - 自动写入历史（最多 50 条，持久化到 `ui-storage`），支持重新应用/删除
 
-### 💭 思考状态与思维链
+### 🔀 OpenAI 图片通道（新增）
+
+- **模型**：`gpt-image-2.5-flare`、`gpt-image-2.5-sunburst`（`services/openaiImageService.ts`，`isOpenAIModel` 自动识别 `gpt-image* / *flare* / *sunburst*`，兼容 `openai/` 前缀；`normalizeOpenAIModel` 去前缀）
+- **接口**：无参考图 → `POST {base}/images/generations`；有参考图（1~14 张）→ `POST {base}/images/edits`（multipart 多 `image` 字段，已实测多图）；返回 `b64_json`（兼容 `url` 回退下载转码），`revised_prompt` 作为文本展示。URL 必须带 `/v1`，如 `https://ai98pro.xyz/v1`（尾部 `/` 会自动 trim）；Google 默认 Endpoint 下自动回退到该地址
+- **映射与限制**：`Auto/1:1 → 1024x1024`，`3:4/9:16 → 1024x1536`，`4:3/16:9 → 1536x1024`（分辨率档暂按长宽比映射）；无思考过程、无真流式（流式开关打开时一次性返回）、无联网搜索、无对话记忆（history 不上传）
+- **跨域说明**：纯前端直连要求供应商支持 CORS。如 `ai98pro` 不支持浏览器跨域（`OPTIONS 403`、无 `ACAO` 头），`curl` 能通但浏览器会 `Failed to fetch`，此时直接提示 `浏览器直连失败：该供应商不支持跨域（CORS），请切换到支持浏览器直连的供应商`，请换源（不做本地代理）
+- **UI 联动**：`ChatInterface` 按模型自动路由（OpenAI 无思考计时、空态标题跟随模型）；切到 OpenAI 方案自动关闭 Grounding/思考；设置面板 `配置方案` 列表显示 `名称 + 模型 · OpenAI/Gemini通道` 与 `使用中` 状态；图片历史 `modelName` 正常记录
+
+### 💭 思考状态与思维链（Gemini 通道）
 
 - **思考指示器**：长思维链时实时显示阶段轮播（思考中/分析上下文/连接思路/生成回复/完善细节）+ 耗时统计
 - **思维链可视化**：可折叠 UI 展示 `thought=true` 的 parts，显示思考耗时；请求历史时自动过滤 `thought` parts，避免回传
@@ -64,7 +72,7 @@
 
 ### ⚙️ 高度可配置
 
-- **API 设置**：首次弹窗输入 Key（支持展开高级设置直接填 Endpoint/模型）；设置面板底部显示当前接口/模型；支持 `ApiConfigDialog` 保存多套配置（名称/Key/接口/模型），一键应用/编辑/删除，持久化
+- **API 设置**：首次弹窗输入 Key（高级设置含 3 个模型预设一键填模型+接口，另可手动改模型名/接口）；`ApiConfigDialog` 保存多套配置（名称/Key/接口/模型），一键应用/编辑/删除，持久化；设置面板仅切换已存方案（无手动输入框），底部显示当前接口/模型
 - **图像参数**：分辨率 `1K / 2K / 4K` + 长宽比 `Auto / 1:1 / 3:4 / 4:3 / 9:16 / 16:9`（带图形预览）。注意：切到 2K/4K 会自动关闭流式，手动开启流式会弹窗警告可能内容不完整
 - **Grounding**：Google Search 开关，联网获取实时信息
 - **思考/流式开关**：`enableThinking（includeThoughts）/ streamResponse` 独立控制
@@ -99,11 +107,11 @@ npm run preview  # vite preview
 
 ## ⚙️ 使用说明
 
-### 1. 配置 API Key
+### 1. 配置 API Key 与方案
 
-首次进入无 Key 时弹窗提示输入 **Gemini API Key**，可展开高级设置同时填写接口地址和模型名。
+首次进入无 Key 时弹窗提示输入 **API Key**，展开高级设置可见 3 个模型预设（`gemini-3-pro-image-preview / gpt-image-2.5-flare / gpt-image-2.5-sunburst`，点预设自动填模型+接口），也可手动改模型名/接口地址。
 
-> 注意：Key 持久化在浏览器 IndexedDB（`gemini-pro-storage`）中，下次自动加载。可在设置面板打开 `API 配置管理` 保存/切换多套配置。
+> 注意：Key 持久化在浏览器 IndexedDB（`gemini-pro-storage`）中，下次自动加载。OpenAI 通道 URL 必须带 `/v1`。多套方案请在 `API 配置管理` 中新增（如 `接口 https://ai98pro.xyz/v1 + 模型 gpt-image-2.5-sunburst`），设置面板仅做切换。
 
 ### 2. URL 参数配置
 
@@ -153,8 +161,9 @@ python3 scripts/merge_prompts.py <in1.json> <in2.json> <out.json>
 
 点击右上角 ⚙️：
 
-- 图像分辨率、长宽比、Google 搜索定位、显示思考过程、流式响应
-- `编辑 API 配置`：多配置增删改查与应用
+- `配置方案`：切换 `API 配置管理` 中的已存方案，自动识别 OpenAI/Gemini 通道（OpenAI 方案切后自动关联网搜索/思考过程）
+- 图像分辨率、长宽比、Google 搜索定位（OpenAI 置灰）、显示思考过程（OpenAI 置灰）、流式响应（OpenAI 无真流式，效果一致）
+- `编辑 API 配置`：多配置增删改查与应用（模型/接口的增改都在这里）
 - 底部显示当前接口地址与模型
 - 顶部栏：新对话（清空消息）、风格、历史、提示词库、主题切换、GitHub、设置
 
@@ -168,7 +177,7 @@ src/
  │   ├── ui/
  │   │   ├── ToastContainer.tsx     # Toast 通知
  │   │   └── GlobalDialog.tsx       # 全局确认/提示框
- │   ├── ApiKeyModal.tsx            # 首次 API Key 输入（含高级设置）
+ │   ├── ApiKeyModal.tsx            # 首次 API Key 输入（含模型预设+高级设置）
  │   ├── ApiConfigDialog.tsx        # 多套 API 配置管理
  │   ├── ChatInterface.tsx          # 主聊天区（发送/停止/重生成/滚动）
  │   ├── InputArea.tsx              # 输入框（点击/拖拽/粘贴/画板//t）
@@ -182,6 +191,7 @@ src/
  │   └── ErrorBoundary.tsx          # 渲染错误边界
  ├── services/
  │   ├── geminiService.ts           # GenAI 流式/非流式封装、错误中文映射
+ │   ├── openaiImageService.ts        # OpenAI 兼容图片通道（generations/edits） ✨
  │   └── promptService.ts           # prompts.json 加载 + 分类 + 缓存
  ├── store/
  │   ├── useAppStore.ts             # Key/设置/消息/图片历史/API配置（IndexedDB持久化）
@@ -217,7 +227,8 @@ package.json                        # undydraw@0.1.0
 | 画板绘图 | ❌ 无 | ✅ 内置 Excalidraw 全屏绘制 + 一键导出 |
 | 提示词库 | ❌ 无 | ✅ 329条本地库 + /t 快捷唤起 |
 | 风格保持 | ❌ 无 | ✅ 画风+角色+内容 + 50条历史 |
-| 多API配置 | ❌ 无 | ✅ 保存/切换多套 Key/接口/模型 |
+| 多API配置 | ❌ 无 | ✅ 保存/切换多套 Key/接口/模型（设置面板仅切换） |
+| OpenAI通道 | ❌ 无 | ✅ flare/sunburst 双模型，generations/edits，CORS失败直提示换源 |
 | 对话管理 | 基础 | ✅ 删除/重生成/停止/思考折叠 |
 
 ## 🤝 贡献

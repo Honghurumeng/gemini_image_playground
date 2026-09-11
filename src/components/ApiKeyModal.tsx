@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Key, ExternalLink, ChevronDown, ChevronRight, Settings2 } from 'lucide-react';
+import { Key, ChevronDown, ChevronRight, Settings2 } from 'lucide-react';
+import { OPENAI_DEFAULT_BASE } from '../services/openaiImageService';
+
+const MODEL_PRESETS = [
+  { id: 'gemini-3-pro-image-preview', label: 'Gemini 3 Pro', endpoint: 'https://generativelanguage.googleapis.com' },
+  { id: 'gpt-image-2.5-flare', label: 'gpt-image-2.5-flare', endpoint: OPENAI_DEFAULT_BASE },
+  { id: 'gpt-image-2.5-sunburst', label: 'gpt-image-2.5-sunburst', endpoint: OPENAI_DEFAULT_BASE },
+];
 
 export const ApiKeyModal: React.FC = () => {
   const { setApiKey, updateSettings, settings } = useAppStore();
@@ -78,6 +85,32 @@ export const ApiKeyModal: React.FC = () => {
               <div className="overflow-hidden">
                 <div className="mt-2 rounded-lg bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 p-4 space-y-4">
                   <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">模型预设</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {MODEL_PRESETS.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => { setModel(p.id); setEndpoint(p.endpoint); }}
+                          className={`rounded-md border px-3 py-2 text-left text-xs transition ${model === p.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300' : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:border-gray-300'}`}
+                        >
+                          <span className="font-medium">{p.label}</span>
+                          <span className="block truncate text-[10px] opacity-60">{p.id}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">模型名称</label>
+                    <input
+                      type="text"
+                      value={model}
+                      onChange={(e) => setModel(e.currentTarget.value)}
+                      className="w-full rounded-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:border-blue-500 focus:outline-none"
+                      placeholder="gemini-3-pro-image-preview"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">自定义接口地址 (可选)</label>
                     <input
                       type="text"
@@ -86,6 +119,7 @@ export const ApiKeyModal: React.FC = () => {
                       className="w-full rounded-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:border-blue-500 focus:outline-none"
                       placeholder="https://generativelanguage.googleapis.com"
                     />
+                    <p className="mt-1 text-[10px] text-gray-400">OpenAI 兼容通道示例：{OPENAI_DEFAULT_BASE}</p>
                   </div>
                 </div>
               </div>
