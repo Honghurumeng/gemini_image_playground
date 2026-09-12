@@ -1,5 +1,16 @@
-import type { Content } from "@google/genai";
 import { AppSettings, Part } from '../types';
+import type { Content } from '../types';
+import {
+  buildModelParts,
+  constructUserContent,
+  defaultPrompt,
+  extractB64FromOpenAIResponse,
+  formatImageApiError,
+  guessMimeType,
+  mapAspectToImageSize,
+  resolveCustomBase,
+  type OpenAIStyleImageResponse,
+} from './image/utils';
 
 export const GROK_DEFAULT_BASE = 'https://api.x.ai/v1';
 
@@ -48,11 +59,7 @@ export function normalizeGrokModel(modelName: string): string {
 
 /** 解析 Base URL：去掉尾部 /；Google 默认地址时回退到 Grok 默认地址 */
 export function resolveGrokBase(customEndpoint?: string): string {
-  const ep = (customEndpoint || '').trim();
-  if (!ep || ep.includes('generativelanguage.googleapis.com')) {
-    return GROK_DEFAULT_BASE;
-  }
-  return ep.replace(/\/+$/, '');
+  return resolveCustomBase(customEndpoint, GROK_DEFAULT_BASE);
 }
 
 /** App 分辨率+长宽比 -> Grok size（当前通道支持 3 档，与 OpenAI 通道一致） */
@@ -60,108 +67,8 @@ export function mapGrokSize(
   resolution: AppSettings['resolution'],
   aspectRatio: AppSettings['aspectRatio']
 ): string {
-  void resolution;
-  switch (aspectRatio) {
-    case '3:4':
-    case '9:16':
-      return '1024x1536';
-    case '4:3':
-    case '16:9':
-      return '1536x1024';
-    case 'Auto':
-    case '1:1':
-    default:
-      return '1024x1024';
-  }
+  return mapAspectToImageSize(resolution, aspectRatio);
 }
-
-const formatGrokError = (error: any, status?: number): Error => {
-  let message = '发生了未知错误，请稍后重试。';
-  const raw: string = error?.message || error?.error?.message || error?.toString() || '';
-
-  if (status === 401 || raw.includes('401') || raw.toLowerCase().includes('invalid api key') || raw.toLowerCase().includes('incorrect api key')) {
-    message = 'API Key 无效或过期，请检查您的设置。';
-  } else if (status === 403 || raw.includes('403')) {
-    message = '访问被拒绝（403）。请检查 Key 权限或切换节点。';
-  } else if (status === 404 || raw.includes('404') || raw.toLowerCase().includes('model')) {
-    message = `模型不存在或通道不支持（404）：${raw.slice(0, 200)}`;
-  } else if (raw.includes('429')) {
-    message = '请求过于频繁，请稍后再试（429）。';
-  } else if (status === 400 || raw.includes('400')) {
-    message = `请求参数无效 (400)：${raw.slice(0, 300)}`;
-  } else if (raw.includes('503') || raw.includes('502') || raw.includes('500')) {
-    message = '上游服务暂时不可用，请稍后重试。';
-  } else if (raw.includes('Failed to fetch') || raw.includes('NetworkError') || raw.includes('TypeError') || raw.includes('Load failed')) {
-    message = '浏览器直连失败：该供应商不支持跨域（CORS），请切换到支持浏览器直连的供应商。';
-  } else if (raw) {
-    message = `请求出错: ${raw.slice(0, 500)}`;
-  }
-
-  const newError = new Error(message);
-  (newError as any).originalError = error;
-  (newError as any).status = status;
-  return newError;
-};
-
-const guessMimeType = (b64: string): string => {
-  if (b64.startsWith('/9j/')) return 'image/jpeg';
-  if (b64.startsWith('iVBOR')) return 'image/png';
-  if (b64.startsWith('R0lGOD')) return 'image/gif';
-  if (b64.startsWith('UklGR')) return 'image/webp';
-  return 'image/png';
-};
-
-interface GrokImageResponse {
-  created?: number;
-  data?: Array<{
-    b64_json?: string;
-    b64?: string;
-    url?: string;
-    mime_type?: string;
-    revised_prompt?: string;
-  }>;
-  error?: any;
-}
-
-const extractB64FromResponse = async (json: GrokImageResponse): Promise<{ b64: string; revisedPrompt?: string; mimeType?: string }> => {
-  if ((json as any)?.error) {
-    throw new Error((json as any).error?.message || JSON.stringify((json as any).error).slice(0, 500));
-  }
-  const item = json.data?.[0];
-  if (!item) throw new Error('上游未返回图片数据（data 为空）。');
-  if (item.b64_json) {
-    return { b64: item.b64_json, revisedPrompt: item.revised_prompt, mimeType: item.mime_type };
-  }
-  if ((item as any).b64) {
-    return { b64: (item as any).b64, revisedPrompt: item.revised_prompt, mimeType: item.mime_type };
-  }
-  if (item.url) {
-    // 兼容只返回 url 的通道：下载后转 base64
-    const resp = await fetch(item.url);
-    if (!resp.ok) throw new Error(`图片 URL 下载失败: ${resp.status}`);
-    const blob = await resp.blob();
-    const b64 = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        resolve(result.split(',')[1] || '');
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-    return { b64, revisedPrompt: item.revised_prompt, mimeType: item.mime_type || blob.type };
-  }
-  throw new Error('上游返回格式不支持（既无 b64_json 也无 url）。');
-};
-
-const constructUserContent = (prompt: string, images: { base64Data: string; mimeType: string }[]): Content => {
-  const parts: Content['parts'] = [];
-  images.forEach((img) => {
-    parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64Data } } as any);
-  });
-  if (prompt.trim()) parts.push({ text: prompt } as any);
-  return { role: 'user', parts: parts as any };
-};
 
 /**
  * Grok 图片通道：文生图 / 图生图统一走 POST {base}/images/generations（JSON）
@@ -181,14 +88,14 @@ export const generateGrokImage = async (
   const base = resolveGrokBase(settings.customEndpoint);
   const model = normalizeGrokModel(settings.modelName || GROK_MODELS[0]);
   const size = mapGrokSize(settings.resolution, settings.aspectRatio);
-  const finalPrompt = prompt.trim() || (images.length > 0 ? 'Edit the image(s) as requested.' : 'Generate an image.');
+  const finalPrompt = defaultPrompt(prompt, images.length);
 
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
 
   console.log('[Grok] 请求:', { base, model, size, refCount: images.length });
 
   try {
-    const body: Record<string, any> = {
+    const body: Record<string, unknown> = {
       model,
       prompt: finalPrompt,
       size,
@@ -213,29 +120,25 @@ export const generateGrokImage = async (
     });
     if (!resp.ok) {
       const text = await resp.text().catch(() => '');
-      throw formatGrokError(text || `HTTP ${resp.status}`, resp.status);
+      throw formatImageApiError(text || `HTTP ${resp.status}`, resp.status);
     }
-    const json = (await resp.json()) as GrokImageResponse;
+    const json = (await resp.json()) as OpenAIStyleImageResponse;
 
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
 
-    const { b64, revisedPrompt, mimeType } = await extractB64FromResponse(json);
+    const { b64, revisedPrompt, mimeType } = await extractB64FromOpenAIResponse(json);
     const finalMime = mimeType || guessMimeType(b64);
-
-    const modelParts: Part[] = [];
-    const displayText = revisedPrompt && revisedPrompt !== finalPrompt ? revisedPrompt : undefined;
-    if (displayText) modelParts.push({ text: displayText });
-    modelParts.push({ inlineData: { mimeType: finalMime, data: b64 } });
+    const modelParts: Part[] = buildModelParts(b64, finalMime, finalPrompt, revisedPrompt);
 
     return {
       userContent: constructUserContent(prompt, images),
       modelParts,
     };
-  } catch (error: any) {
-    if (error?.name === 'AbortError') throw error;
+  } catch (error: unknown) {
+    if ((error as { name?: string })?.name === 'AbortError') throw error;
     console.error('[Grok] Error:', error);
-    if (error instanceof Error && (error as any).originalError !== undefined) throw error;
-    throw formatGrokError(error);
+    if (error instanceof Error && 'originalError' in error) throw error;
+    throw formatImageApiError(error);
   }
 };
 

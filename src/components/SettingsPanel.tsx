@@ -2,11 +2,7 @@ import React from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { useUiStore } from '../store/useUiStore';
 import { X, Settings } from 'lucide-react';
-import { isOpenAIModel } from '../services/openaiImageService';
-import { isGrokModel } from '../services/grokImageService';
-
-const isNonGeminiModel = (m?: string) => isOpenAIModel(m) || isGrokModel(m);
-const channelLabel = (m?: string) => isGrokModel(m) ? 'Grok 通道' : isOpenAIModel(m) ? 'OpenAI 通道' : 'Gemini 通道';
+import { channelLabel, isNonGeminiModel } from '../services/image/channel';
 
 export const SettingsPanel: React.FC = () => {
   const { apiKey, settings, updateSettings, toggleSettings, openApiConfigDialog, apiConfigs, applyApiConfig } = useAppStore();
@@ -36,21 +32,19 @@ export const SettingsPanel: React.FC = () => {
             <div className="grid grid-cols-1 gap-2">
               {apiConfigs.map((c) => {
                 const active = isActiveConfig(c);
-                const openAI = isOpenAIModel(c.model);
-                const grok = isGrokModel(c.model);
                 return (
                   <button
                     key={c.id}
                     onClick={() => {
                       applyApiConfig(c.id);
-                      if (isOpenAIModel(c.model) || isGrokModel(c.model)) {
+                      if (isNonGeminiModel(c.model)) {
                         updateSettings({ useGrounding: false, enableThinking: false });
                       }
                     }}
                     className={`rounded-lg border px-3 py-2 text-left text-sm font-medium transition ${active ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-700'}`}
                   >
                     <span className="block truncate">{c.name}{active ? '（使用中）' : ''}</span>
-                    <span className="block truncate text-[10px] font-normal opacity-60">{c.model || '默认模型'} · {grok ? 'Grok 通道' : openAI ? 'OpenAI 通道' : 'Gemini 通道'}</span>
+                    <span className="block truncate text-[10px] font-normal opacity-60">{c.model || '默认模型'} · {channelLabel(c.model)}</span>
                   </button>
                 );
               })}

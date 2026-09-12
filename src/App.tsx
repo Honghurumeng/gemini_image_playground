@@ -5,7 +5,7 @@ import { ChatInterface } from './components/ChatInterface';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { GlobalDialog } from './components/ui/GlobalDialog';
 import { Settings, Sun, Moon, ImageIcon, Sparkles, Plus, Palette, Github } from 'lucide-react';
-import { lazyWithRetry, preloadComponents } from './utils/lazyLoadUtils';
+import { lazyWithRetry, preloadCritical, preloadOnInteraction } from './utils/lazyLoadUtils';
 
 // Lazy load components
 const ApiKeyModal = lazyWithRetry(() => import('./components/ApiKeyModal').then(module => ({ default: module.ApiKeyModal })));
@@ -24,19 +24,15 @@ const App: React.FC = () => {
     addToast('已开始新对话', 'success');
   };
 
-  // Preload components after mount
+  // 首屏只空闲预加载关键小组件；重型面板（历史/提示词库/风格/配置/画板）改为 hover/打开时加载，
+  // 否则首屏就把所有 chunk 拉下来，懒加载失效。
   useEffect(() => {
-    preloadComponents([
-      () => import('./components/ApiKeyModal'),
-      () => import('./components/SettingsPanel'),
-      () => import('./components/ImageHistoryPanel'),
-      () => import('./components/PromptLibraryPanel'),
-      () => import('./components/ApiConfigDialog'),
-      // Also preload components used in ChatInterface
+    preloadCritical([
+      () => import('./components/MessageBubble'),
       () => import('./components/ThinkingIndicator'),
-      () => import('./components/MessageBubble')
+      ...(isSettingsOpen ? [() => import('./components/SettingsPanel')] : []),
     ]);
-  }, []);
+  }, [isSettingsOpen]);
   const [mounted, setMounted] = useState(false);
   const [isImageHistoryOpen, setIsImageHistoryOpen] = useState(false);
 
@@ -148,6 +144,8 @@ const App: React.FC = () => {
             </button>
             <button
               onClick={toggleStylePanel}
+              onMouseEnter={() => preloadOnInteraction(() => import('./components/StylePanel'))}
+              onFocus={() => preloadOnInteraction(() => import('./components/StylePanel'))}
               className={`rounded-lg p-2 transition focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                 isStylePanelOpen
                   ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
@@ -159,6 +157,8 @@ const App: React.FC = () => {
             </button>
             <button
               onClick={() => setIsImageHistoryOpen(true)}
+              onMouseEnter={() => preloadOnInteraction(() => import('./components/ImageHistoryPanel'))}
+              onFocus={() => preloadOnInteraction(() => import('./components/ImageHistoryPanel'))}
               className="relative rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               title="图片历史"
             >
@@ -172,6 +172,8 @@ const App: React.FC = () => {
             </button>
             <button
               onClick={togglePromptLibrary}
+              onMouseEnter={() => preloadOnInteraction(() => import('./components/PromptLibraryPanel'))}
+              onFocus={() => preloadOnInteraction(() => import('./components/PromptLibraryPanel'))}
               className={`rounded-lg p-2 transition focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                 isPromptLibraryOpen
                   ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'

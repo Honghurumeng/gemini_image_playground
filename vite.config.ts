@@ -26,11 +26,14 @@ export default defineConfig(({ mode }) => {
         }
       },
       build: {
+        chunkSizeWarningLimit: 600,
         rollupOptions: {
           output: {
             manualChunks: {
               'google-genai': ['@google/genai'],
-              'markdown-libs': ['react-markdown', 'remark-gfm']
+              'markdown-libs': ['react-markdown', 'remark-gfm'],
+              // Excalidraw（含 mermaid 相关大依赖）单独分包：只在打开画板时加载，不进首屏
+              'excalidraw': ['@excalidraw/excalidraw'],
             }
           }
         }

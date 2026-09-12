@@ -4,7 +4,10 @@ import { useAppStore } from '../store/useAppStore';
 import { useUiStore } from '../store/useUiStore';
 import { Attachment } from '../types';
 import { PromptQuickPicker } from './PromptQuickPicker';
-import { DrawingBoard } from './DrawingBoard';
+import { fileToCompressedAttachment, compressDataUrl } from '../utils/imageUtils';
+import { lazyWithRetry, preloadOnInteraction } from '../utils/lazyLoadUtils';
+
+const DrawingBoard = lazyWithRetry(() => import('./DrawingBoard').then(m => ({ default: m.DrawingBoard })));
 
 interface Props {
   onSend: (text: string, attachments: Attachment[]) => void;
@@ -14,7 +17,7 @@ interface Props {
 
 export const InputArea: React.FC<Props> = ({ onSend, onStop, disabled }) => {
   const { inputText, setInputText } = useAppStore();
-  const { togglePromptLibrary, isPromptLibraryOpen } = useUiStore();
+  const { togglePromptLibrary, isPromptLibraryOpen, addToast } = useUiStore();
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isQuickPickerOpen, setIsQuickPickerOpen] = useState(false);
@@ -22,6 +25,11 @@ export const InputArea: React.FC<Props> = ({ onSend, onStop, disabled }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dragCounter = useRef(0);
+  // processFiles 是 async 压缩，并发发送时用 ref 拿最新数量，避免 stale 闭包超限
+  const attachmentsRef = useRef<Attachment[]>([]);
+  useEffect(() => {
+    attachmentsRef.current = attachments;
+  }, [attachments]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Check if device is likely mobile/tablet based on screen width
@@ -42,43 +50,61 @@ export const InputArea: React.FC<Props> = ({ onSend, onStop, disabled }) => {
   };
 
   const processFiles = useCallback(async (files: File[]) => {
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) return;
+    // 先截断，避免一次压缩十几张大图卡死 UI
+    const room = Math.max(0, 14 - attachmentsRef.current.length);
+    if (room <= 0) {
+      addToast('最多上传 14 张参考图片', 'error');
+      return;
+    }
+    const accepted = imageFiles.slice(0, room);
+    if (imageFiles.length > room) {
+      addToast(`最多上传 14 张，已忽略超出的 ${imageFiles.length - room} 张`, 'error');
+    }
+
     const newAttachments: Attachment[] = [];
-
-    for (const file of files) {
-      if (file.type.startsWith('image/')) {
-        try {
-           const base64 = await fileToBase64(file);
-           // Strip the data:image/jpeg;base64, part for the API payload
-           const base64Data = base64.split(',')[1];
-
-           newAttachments.push({
-             file,
-             preview: base64,
-             base64Data,
-             mimeType: file.type
-           });
-        } catch (err) {
-           console.error("Error reading file", err);
-        }
+    for (const file of accepted) {
+      try {
+        // 上传前压缩到最长边 2048（JPEG 0.85），避免原图 base64 撑爆请求
+        const compressed = await fileToCompressedAttachment(file);
+        newAttachments.push({
+          file: compressed.file,
+          preview: compressed.preview,
+          base64Data: compressed.base64Data,
+          mimeType: compressed.mimeType,
+        });
+      } catch (err) {
+        console.error("Error reading file", err);
+        addToast(`图片 ${file.name || ''} 读取失败，已跳过`, 'error');
       }
     }
 
-    setAttachments(prev => [...prev, ...newAttachments].slice(0, 14));
-  }, []);
+    if (newAttachments.length > 0) {
+      setAttachments(prev => [...prev, ...newAttachments].slice(0, 14));
+    }
+  }, [addToast]);
 
-  const handleDrawingComplete = useCallback((base64: string) => {
-    // Convert base64 to the format expected by attachments
-    const base64Data = base64.split(',')[1];
+  const handleDrawingComplete = useCallback(async (base64: string) => {
+    // 画板 PNG 可能很大，同样走上传压缩
+    const { base64Data, mimeType } = await compressDataUrl(base64, 'image/png');
+    const preview = `data:${mimeType};base64,${base64Data}`;
 
     const newAttachment: Attachment = {
-      file: new File([], 'drawing.png', { type: 'image/png' }),
-      preview: base64,
+      file: new File([], 'drawing.png', { type: mimeType }),
+      preview,
       base64Data,
-      mimeType: 'image/png'
+      mimeType
     };
 
-    setAttachments(prev => [...prev, newAttachment].slice(0, 14));
-  }, []);
+    setAttachments(prev => {
+      if (prev.length >= 14) {
+        addToast('最多上传 14 张参考图片', 'error');
+        return prev;
+      }
+      return [...prev, newAttachment].slice(0, 14);
+    });
+  }, [addToast]);
 
   useEffect(() => {
     const handlePaste = (event: ClipboardEvent) => {
@@ -242,6 +268,8 @@ export const InputArea: React.FC<Props> = ({ onSend, onStop, disabled }) => {
 
           <button
             onClick={() => setIsDrawingBoardOpen(true)}
+            onMouseEnter={() => preloadOnInteraction(() => import('./DrawingBoard'))}
+            onFocus={() => preloadOnInteraction(() => import('./DrawingBoard'))}
             disabled={disabled || attachments.length >= 14}
             className="mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-green-600 dark:hover:text-green-400 transition disabled:opacity-50"
             title="画板"
@@ -308,21 +336,16 @@ export const InputArea: React.FC<Props> = ({ onSend, onStop, disabled }) => {
         onSelect={handleQuickPickerSelect}
       />
 
-      {/* 画板组件 */}
-      <DrawingBoard
-        isOpen={isDrawingBoardOpen}
-        onClose={() => setIsDrawingBoardOpen(false)}
-        onImageComplete={handleDrawingComplete}
-      />
+      {/* 画板组件：打开时才挂载，Excalidraw 不进首屏包 */}
+      {isDrawingBoardOpen && (
+        <React.Suspense fallback={null}>
+          <DrawingBoard
+            isOpen={isDrawingBoardOpen}
+            onClose={() => setIsDrawingBoardOpen(false)}
+            onImageComplete={handleDrawingComplete}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
-};
-
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
 };
