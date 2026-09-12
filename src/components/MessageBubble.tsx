@@ -5,6 +5,7 @@ import { ChatMessage, Part } from '../types';
 import { User, Sparkles, ChevronDown, ChevronRight, BrainCircuit, Trash2, RotateCcw, Download } from 'lucide-react';
 import { useUiStore } from '../store/useUiStore';
 import { downloadImage, openImageInNewTab } from '../utils/imageUtils';
+import { RemoveBackgroundButton } from './RemoveBackgroundButton';
 
 interface ParsedPart {
   type: 'text' | 'image';
@@ -134,19 +135,28 @@ const ImageWithDownload: React.FC<{ part: Part; index: number }> = ({ part, inde
         title="点击查看大图"
       />
 
-      {/* Download Button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          downloadImage(part.inlineData!.mimeType, part.inlineData!.data);
-        }}
-        className={`absolute top-3 right-3 p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white shadow-lg backdrop-blur-sm transition-all ${
+      {/* Download + 抠图 Buttons */}
+      <div className={`absolute top-3 right-3 flex gap-2 transition-all ${
           isImageHovered ? 'opacity-100' : 'opacity-0'
-        }`}
-        title="下载图片"
-      >
-        <Download className="h-5 w-5" />
-      </button>
+        }`}>
+        <RemoveBackgroundButton
+          base64Data={part.inlineData.data}
+          mimeType={part.inlineData.mimeType}
+          variant="icon"
+          visible={isImageHovered}
+          className="p-2.5! opacity-100!"
+        />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            downloadImage(part.inlineData!.mimeType, part.inlineData!.data);
+          }}
+          className="p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white shadow-lg backdrop-blur-sm transition-all"
+          title="下载图片"
+        >
+          <Download className="h-5 w-5" />
+        </button>
+      </div>
     </div>
   );
 };
@@ -170,18 +180,28 @@ const ImageFromMarkdown: React.FC<{ base64Data: string; mimeType: string; index:
         title="点击查看大图"
       />
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          downloadImage(mimeType, base64Data);
-        }}
-        className={`absolute top-3 right-3 p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white shadow-lg backdrop-blur-sm transition-all ${
+      {/* Download + 抠图 Buttons */}
+      <div className={`absolute top-3 right-3 flex gap-2 transition-all ${
           isImageHovered ? 'opacity-100' : 'opacity-0'
-        }`}
-        title="下载图片"
-      >
-        <Download className="h-5 w-5" />
-      </button>
+        }`}>
+        <RemoveBackgroundButton
+          base64Data={base64Data}
+          mimeType={mimeType}
+          variant="icon"
+          visible={isImageHovered}
+          className="p-2.5! opacity-100!"
+        />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            downloadImage(mimeType, base64Data);
+          }}
+          className="p-2.5 rounded-lg bg-black/60 hover:bg-black/80 text-white shadow-lg backdrop-blur-sm transition-all"
+          title="下载图片"
+        >
+          <Download className="h-5 w-5" />
+        </button>
+      </div>
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { useUiStore } from './store/useUiStore';
 import { ChatInterface } from './components/ChatInterface';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { GlobalDialog } from './components/ui/GlobalDialog';
-import { Settings, Sun, Moon, ImageIcon, Sparkles, Plus, Palette, Github } from 'lucide-react';
+import { Settings, Sun, Moon, ImageIcon, Sparkles, Plus, Palette, Github, Scissors } from 'lucide-react';
 import { lazyWithRetry, preloadCritical, preloadOnInteraction } from './utils/lazyLoadUtils';
 
 // Lazy load components
@@ -14,6 +14,7 @@ const ImageHistoryPanel = lazyWithRetry(() => import('./components/ImageHistoryP
 const PromptLibraryPanel = lazyWithRetry(() => import('./components/PromptLibraryPanel').then(module => ({ default: module.PromptLibraryPanel })));
 const StylePanel = lazyWithRetry(() => import('./components/StylePanel').then(module => ({ default: module.StylePanel })));
 const ApiConfigDialog = lazyWithRetry(() => import('./components/ApiConfigDialog').then(module => ({ default: module.ApiConfigDialog })));
+const BackgroundRemovalPanel = lazyWithRetry(() => import('./components/BackgroundRemovalPanel').then(module => ({ default: module.BackgroundRemovalPanel })));
 
 const App: React.FC = () => {
   const { apiKey, setApiKey, settings, updateSettings, isSettingsOpen, toggleSettings, imageHistory, clearHistory } = useAppStore();
@@ -35,6 +36,7 @@ const App: React.FC = () => {
   }, [isSettingsOpen]);
   const [mounted, setMounted] = useState(false);
   const [isImageHistoryOpen, setIsImageHistoryOpen] = useState(false);
+  const [isBgRemovalOpen, setIsBgRemovalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -134,14 +136,30 @@ const App: React.FC = () => {
           </div>
         </div>
         
-        {apiKey && (
-          <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          {apiKey && (
             <button
               onClick={handleNewChat}
               className="rounded-lg border border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 text-sm font-medium text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 transition focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               新对话
             </button>
+          )}
+          <button
+            onClick={() => setIsBgRemovalOpen(true)}
+            onMouseEnter={() => preloadOnInteraction(() => import('./components/BackgroundRemovalPanel'))}
+            onFocus={() => preloadOnInteraction(() => import('./components/BackgroundRemovalPanel'))}
+            className={`rounded-lg p-2 transition focus:outline-none focus:ring-2 focus:ring-purple-500 ${
+              isBgRemovalOpen
+                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+            }`}
+            title="本地图片抠图"
+          >
+            <Scissors className="h-6 w-6" />
+          </button>
+          {apiKey && (
+          <>
             <button
               onClick={toggleStylePanel}
               onMouseEnter={() => preloadOnInteraction(() => import('./components/StylePanel'))}
@@ -206,8 +224,9 @@ const App: React.FC = () => {
             >
               <Settings className="h-6 w-6" />
             </button>
-          </div>
-        )}
+          </>
+          )}
+        </div>
       </header>
 
       {/* Main Content */}
@@ -267,6 +286,9 @@ const App: React.FC = () => {
         {!apiKey && <ApiKeyModal />}
         {isImageHistoryOpen && (
           <ImageHistoryPanel isOpen={isImageHistoryOpen} onClose={() => setIsImageHistoryOpen(false)} />
+        )}
+        {isBgRemovalOpen && (
+          <BackgroundRemovalPanel isOpen={isBgRemovalOpen} onClose={() => setIsBgRemovalOpen(false)} />
         )}
         <PromptLibraryPanel />
         <StylePanel />

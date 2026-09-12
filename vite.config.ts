@@ -14,6 +14,12 @@ export default defineConfig(({ mode }) => {
         preact(),
         tailwindcss(),
       ],
+      optimizeDeps: {
+        exclude: ['@imgly/background-removal', 'onnxruntime-web'],
+      },
+      worker: {
+        format: 'es',
+      },
       define: {
       },
       resolve: {

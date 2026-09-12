@@ -5,6 +5,7 @@ import { get as getItem } from 'idb-keyval';
 import { X, Download, Trash2, ImageIcon, Search, Copy, ArrowRight, ArrowLeft, RefreshCw, Loader2 } from 'lucide-react';
 import { ImageHistoryItem } from '../types';
 import { downloadImage } from '../utils/imageUtils';
+import { RemoveBackgroundButton } from './RemoveBackgroundButton';
 
 interface Props {
   isOpen: boolean;
@@ -352,7 +353,18 @@ export const ImageHistoryPanel: React.FC<Props> = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-3">
+                 {fullResData && (
+                   <RemoveBackgroundButton
+                     base64Data={fullResData}
+                     mimeType={selectedImage.mimeType}
+                     prompt={selectedImage.prompt}
+                     modelName={selectedImage.modelName}
+                     variant="button"
+                     className="w-full"
+                   />
+                 )}
+                 <div className="grid grid-cols-2 gap-3">
                  <button
                   onClick={() => handleReusePrompt(selectedImage.prompt)}
                   className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 rounded-lg font-medium transition"
@@ -367,6 +379,7 @@ export const ImageHistoryPanel: React.FC<Props> = ({ isOpen, onClose }) => {
                    <Download className="h-4 w-4" />
                    <span>下载图片</span>
                  </button>
+                 </div>
               </div>
             </div>
           </div>
