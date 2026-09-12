@@ -4,6 +4,7 @@ import { InputArea } from './InputArea';
 import { ErrorBoundary } from './ErrorBoundary';
 import { streamGeminiResponse, generateContent } from '../services/geminiService';
 import { isOpenAIModel, streamOpenAIResponse, generateOpenAIImage } from '../services/openaiImageService';
+import { isGrokModel, streamGrokResponse, generateGrokImage } from '../services/grokImageService';
 import { convertMessagesToHistory } from '../utils/messageUtils';
 import { extractImagesFromParts } from '../utils/extractImagesFromParts';
 import { ChatMessage, Attachment, Part } from '../types';
@@ -96,8 +97,9 @@ export const ChatInterface: React.FC = () => {
       let isThinking = false;
 
       const useOpenAI = isOpenAIModel(settings.modelName);
-      // OpenAI 兼容通道无真流式/思考过程：stream 模式下也一次性返回
-      if (settings.streamResponse && !useOpenAI) {
+      const useGrok = isGrokModel(settings.modelName);
+      // OpenAI / Grok 兼容通道无真流式/思考过程：stream 模式下也一次性返回
+      if (settings.streamResponse && !useOpenAI && !useGrok) {
           const stream = streamGeminiResponse(
             apiKey,
             history, 
@@ -143,6 +145,31 @@ export const ChatInterface: React.FC = () => {
             }
           } else {
             const result = await generateOpenAIImage(
+              apiKey,
+              history,
+              text,
+              imagesPayload,
+              settings,
+              abortControllerRef.current.signal
+            );
+            updateLastMessage(result.modelParts, false, undefined);
+          }
+      } else if (useGrok) {
+          // Grok 通道：流式开关打开时也走一次性生成（兼容 yield 一次）
+          if (settings.streamResponse) {
+            const stream = streamGrokResponse(
+              apiKey,
+              history,
+              text,
+              imagesPayload,
+              settings,
+              abortControllerRef.current.signal
+            );
+            for await (const chunk of stream) {
+              updateLastMessage(chunk.modelParts, false, undefined);
+            }
+          } else {
+            const result = await generateGrokImage(
               apiKey,
               history,
               text,
@@ -281,7 +308,7 @@ export const ChatInterface: React.FC = () => {
           <div className="flex h-full flex-col items-center justify-center text-center opacity-40 select-none">
             <div className="mb-6 rounded-3xl bg-gray-50 dark:bg-gray-900 p-8 shadow-2xl ring-1 ring-gray-200 dark:ring-gray-800 transition-colors duration-200">
                <Sparkles className="h-16 w-16 text-blue-500 mb-4 mx-auto animate-pulse-fast" />
-               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{isOpenAIModel(settings.modelName) ? (settings.modelName || 'GPT Image') : 'Gemini 3 Pro'}</h3>
+               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{isGrokModel(settings.modelName) ? (settings.modelName || 'Grok Imagine') : isOpenAIModel(settings.modelName) ? (settings.modelName || 'GPT Image') : 'Gemini 3 Pro'}</h3>
                <p className="max-w-xs text-sm text-gray-500 dark:text-gray-400">
                  开始输入以创建图像，通过对话编辑它们，或询问复杂的问题。
                </p>

@@ -3,6 +3,10 @@ import { useAppStore } from '../store/useAppStore';
 import { useUiStore } from '../store/useUiStore';
 import { X, Settings } from 'lucide-react';
 import { isOpenAIModel } from '../services/openaiImageService';
+import { isGrokModel } from '../services/grokImageService';
+
+const isNonGeminiModel = (m?: string) => isOpenAIModel(m) || isGrokModel(m);
+const channelLabel = (m?: string) => isGrokModel(m) ? 'Grok 通道' : isOpenAIModel(m) ? 'OpenAI 通道' : 'Gemini 通道';
 
 export const SettingsPanel: React.FC = () => {
   const { apiKey, settings, updateSettings, toggleSettings, openApiConfigDialog, apiConfigs, applyApiConfig } = useAppStore();
@@ -33,25 +37,26 @@ export const SettingsPanel: React.FC = () => {
               {apiConfigs.map((c) => {
                 const active = isActiveConfig(c);
                 const openAI = isOpenAIModel(c.model);
+                const grok = isGrokModel(c.model);
                 return (
                   <button
                     key={c.id}
                     onClick={() => {
                       applyApiConfig(c.id);
-                      if (isOpenAIModel(c.model)) {
+                      if (isOpenAIModel(c.model) || isGrokModel(c.model)) {
                         updateSettings({ useGrounding: false, enableThinking: false });
                       }
                     }}
                     className={`rounded-lg border px-3 py-2 text-left text-sm font-medium transition ${active ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-700'}`}
                   >
                     <span className="block truncate">{c.name}{active ? '（使用中）' : ''}</span>
-                    <span className="block truncate text-[10px] font-normal opacity-60">{c.model || '默认模型'} · {openAI ? 'OpenAI 通道' : 'Gemini 通道'}</span>
+                    <span className="block truncate text-[10px] font-normal opacity-60">{c.model || '默认模型'} · {grok ? 'Grok 通道' : openAI ? 'OpenAI 通道' : 'Gemini 通道'}</span>
                   </button>
                 );
               })}
             </div>
           )}
-          <p className="mt-2 text-[10px] text-gray-400 dark:text-gray-500">切换方案自动识别模型类型（OpenAI / Gemini）。增改请点「编辑 API 配置」。当前：{settings.modelName || 'gemini-3-pro-image-preview'}</p>
+          <p className="mt-2 text-[10px] text-gray-400 dark:text-gray-500">切换方案自动识别模型类型（OpenAI / Grok / Gemini）。增改请点「编辑 API 配置」。当前：{settings.modelName || 'gemini-3-pro-image-preview'}</p>
         </section>
 
         {/* Image Settings Group */}
@@ -120,9 +125,9 @@ export const SettingsPanel: React.FC = () => {
             </section>
 
             {/* Grounding */}
-            <section className={isOpenAIModel(settings.modelName) ? 'opacity-50 pointer-events-none' : ''}>
+            <section className={isNonGeminiModel(settings.modelName) ? 'opacity-50 pointer-events-none' : ''}>
               <label className="flex items-center justify-between cursor-pointer group">
-                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300">Google 搜索定位{isOpenAIModel(settings.modelName) ? '（OpenAI 通道不支持）' : ''}</span>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300">Google 搜索定位{isNonGeminiModel(settings.modelName) ? `（${channelLabel(settings.modelName)}不支持）` : ''}</span>
                 <div className="relative">
                   <input
                     type="checkbox"
@@ -139,9 +144,9 @@ export const SettingsPanel: React.FC = () => {
             </section>
 
             {/* Thinking Process */}
-            <section className={isOpenAIModel(settings.modelName) ? 'opacity-50 pointer-events-none' : ''}>
+            <section className={isNonGeminiModel(settings.modelName) ? 'opacity-50 pointer-events-none' : ''}>
               <label className="flex items-center justify-between cursor-pointer group">
-                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300">显示思考过程{isOpenAIModel(settings.modelName) ? '（OpenAI 通道不支持）' : ''}</span>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300">显示思考过程{isNonGeminiModel(settings.modelName) ? `（${channelLabel(settings.modelName)}不支持）` : ''}</span>
                 <div className="relative">
                   <input
                     type="checkbox"
@@ -183,7 +188,7 @@ export const SettingsPanel: React.FC = () => {
             </div>
           </label>
           <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
-             逐个 token 流式传输模型的响应。对于一次性响应请禁用。{isOpenAIModel(settings.modelName) ? 'OpenAI 图片通道无真流式，开关仅决定调用路径，效果一致。' : ''}
+             逐个 token 流式传输模型的响应。对于一次性响应请禁用。{isNonGeminiModel(settings.modelName) ? `${channelLabel(settings.modelName)}无真流式，开关仅决定调用路径，效果一致。` : ''}
           </p>
         </section>
   

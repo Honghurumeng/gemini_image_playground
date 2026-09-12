@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { Key, ChevronDown, ChevronRight, Settings2 } from 'lucide-react';
 import { OPENAI_DEFAULT_BASE } from '../services/openaiImageService';
+import { GROK_DEFAULT_BASE } from '../services/grokImageService';
 
 const MODEL_PRESETS = [
   { id: 'gemini-3-pro-image-preview', label: 'Gemini 3 Pro', endpoint: 'https://generativelanguage.googleapis.com' },
   { id: 'gpt-image-2.5-flare', label: 'gpt-image-2.5-flare', endpoint: OPENAI_DEFAULT_BASE },
   { id: 'gpt-image-2.5-sunburst', label: 'gpt-image-2.5-sunburst', endpoint: OPENAI_DEFAULT_BASE },
+  { id: 'grok-imagine-image-2.0', label: 'grok-imagine-image-2.0', endpoint: GROK_DEFAULT_BASE },
 ];
 
 export const ApiKeyModal: React.FC = () => {
@@ -119,7 +121,7 @@ export const ApiKeyModal: React.FC = () => {
                       className="w-full rounded-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:border-blue-500 focus:outline-none"
                       placeholder="https://generativelanguage.googleapis.com"
                     />
-                    <p className="mt-1 text-[10px] text-gray-400">OpenAI 兼容通道示例：{OPENAI_DEFAULT_BASE}</p>
+                    <p className="mt-1 text-[10px] text-gray-400">OpenAI 兼容通道示例：{OPENAI_DEFAULT_BASE}；Grok 官方通道：{GROK_DEFAULT_BASE}</p>
                   </div>
                 </div>
               </div>
