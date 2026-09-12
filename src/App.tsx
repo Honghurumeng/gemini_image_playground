@@ -4,7 +4,7 @@ import { useUiStore } from './store/useUiStore';
 import { ChatInterface } from './components/ChatInterface';
 import { ToastContainer } from './components/ui/ToastContainer';
 import { GlobalDialog } from './components/ui/GlobalDialog';
-import { Settings, Sun, Moon, ImageIcon, Sparkles, Plus, Palette, Github, Scissors } from 'lucide-react';
+import { Settings, Sun, Moon, ImageIcon, Sparkles, Plus, Palette, Scissors } from 'lucide-react';
 import { lazyWithRetry, preloadCritical, preloadOnInteraction } from './utils/lazyLoadUtils';
 
 // Lazy load components
@@ -123,16 +123,13 @@ const App: React.FC = () => {
       {/* Header */}
       <header className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-950/50 px-6 py-4 backdrop-blur-md z-10 transition-colors duration-200">
         <div className="flex items-center gap-3">
-          <a 
-            href="https://github.com/Honghurumeng/gemini_image_playground" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex h-10 w-10 items-center justify-center overflow-hidden hover:opacity-80 transition-opacity"
+          <div
+            className="flex h-10 w-10 items-center justify-center overflow-hidden"
           >
              <img src="/logo.svg" alt="Logo" className="h-full w-full object-cover" />
-          </a>
+          </div>
           <div className="hidden sm:block">
-            <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Nano Banana Pro</h1>
+            <h1 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">DrawBox</h1>
           </div>
         </div>
         
@@ -208,15 +205,6 @@ const App: React.FC = () => {
             >
               {settings.theme === 'dark' ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
             </button>
-            <a
-              href="https://github.com/Honghurumeng/gemini_image_playground"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              title="GitHub"
-            >
-              <Github className="h-6 w-6" />
-            </a>
             <button
               onClick={toggleSettings}
               className="rounded-lg p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"

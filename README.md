@@ -1,8 +1,6 @@
-# Nano Banana Pro 在线客户端
+# DrawBox
 
-> 原仓库名 `gemini_image_playground` / 包名 `undydraw`
-
-这是一个基于 **Preact** 的现代化纯前端应用，支持 **Gemini 3 Pro Image** 与 **OpenAI 兼容图片通道（gpt-image-2.5-flare / gpt-image-2.5-sunburst）** 双通道。它提供了一个流畅的聊天界面，支持多模态输入，并实时显示 AI 的思考状态（Gemini 通道）。页面标题为 `Nano Banana Pro 在线客户端`，100% 在浏览器中运行，无需后端。
+这是一个基于 **Preact** 的现代化纯前端应用，支持 **Gemini 3 Pro Image** 与 **OpenAI 兼容图片通道（gpt-image-2.5-flare / gpt-image-2.5-sunburst）** 双通道。它提供了一个流畅的聊天界面，支持多模态输入，并实时显示 AI 的思考状态（Gemini 通道）。100% 在浏览器中运行，无需后端。
 
 ## ✨ 主要特性
 
@@ -212,9 +210,9 @@ public/
  └── 4*4.png                        # 示例预览图
 scripts/
  └── merge_prompts.py               # 提示词合并去重
-index.html                          # 标题 Nano Banana Pro 在线客户端 + Splash
+index.html                          # 标题 DrawBox + Splash
 vite.config.ts                      # port 3003 + preact/tailwind + react别名 + 分包
-package.json                        # undydraw@0.1.0
+package.json                        # drawbox@0.1.0
 ```
 
 ## 🎯 功能对比
@@ -241,7 +239,4 @@ package.json                        # undydraw@0.1.0
 
 AGPL-3.0-only（见 `LICENSE`，`package.json license` 一致）
 
-## 🙏 致谢
 
-- 原项目：[faithleysath/UndyDraw](https://github.com/faithleysath/UndyDraw)
-- 本仓库：[Honghurumeng/gemini_image_playground](https://github.com/Honghurumeng/gemini_image_playground)
