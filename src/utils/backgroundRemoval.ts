@@ -63,6 +63,75 @@ export const removeImageBackground = async (
   return { base64Data: outBase64, mimeType: 'image/png' };
 };
 
+/** 归一化框选矩形（相对原图 0~1） */
+export interface CropRectNorm {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * 按归一化矩形裁剪原图，返回 PNG base64（不带前缀）。
+ * 用于“只抠选中区域”：先裁剪再送入抠图模型。
+ */
+export const cropImageRegion = (
+  base64Data: string,
+  mimeType: string,
+  rect: CropRectNorm
+): Promise<{ base64Data: string; mimeType: 'image/png'; width: number; height: number }> => {
+  return new Promise((resolve, reject) => {
+    if (!base64Data) {
+      reject(new Error('图片数据为空'));
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const natW = img.naturalWidth || img.width;
+        const natH = img.naturalHeight || img.height;
+        if (!natW || !natH) {
+          reject(new Error('图片尺寸无效'));
+          return;
+        }
+        // 钳制到 0~1，防止越界
+        const x = Math.min(1, Math.max(0, rect.x));
+        const y = Math.min(1, Math.max(0, rect.y));
+        const w = Math.min(1 - x, Math.max(0, rect.w));
+        const h = Math.min(1 - y, Math.max(0, rect.h));
+        const sx = Math.round(x * natW);
+        const sy = Math.round(y * natH);
+        const sw = Math.round(w * natW);
+        const sh = Math.round(h * natH);
+        if (sw < 8 || sh < 8) {
+          reject(new Error('框选区域太小，请框大一点'));
+          return;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = sw;
+        canvas.height = sh;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('浏览器不支持 Canvas 裁剪'));
+          return;
+        }
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+        const dataUrl = canvas.toDataURL('image/png');
+        const out = dataUrl.split(',')[1] || '';
+        if (!out) {
+          reject(new Error('裁剪结果为空'));
+          return;
+        }
+        resolve({ base64Data: out, mimeType: 'image/png', width: sw, height: sh });
+      } catch (e) {
+        reject(e);
+      }
+    };
+    img.onerror = () => reject(new Error('图片解码失败，无法裁剪'));
+    img.src = `data:${mimeType || 'image/png'};base64,${base64Data}`;
+  });
+};
+
 export const isBackgroundRemovalSupported = (): boolean => {
   try {
     return typeof WebAssembly !== 'undefined' && typeof Worker !== 'undefined';
